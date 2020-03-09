@@ -5,10 +5,10 @@ Use this encoder for automatically adding a minimal set of ECS fields to your lo
 Following fields will be added by default:
 ```
 {
-  "log.level":"info",
-  "@timestamp":1583748236254129,
-  "message":"some logging info",
-  "ecs.version":"1.5.0"
+    "log.level":"info",
+    "@timestamp":1583748236254129,
+    "message":"some logging info",
+    "ecs.version":"1.5.0"
 }
 ```
 
@@ -25,31 +25,33 @@ require github.com/elastic/ecs-logging-go-zap master
 
 ## Example usage
 ```
-   ecszap "github.com/elastic/ecs-logging-go-zap"
+ecszap "github.com/elastic/ecs-logging-go-zap"
 
-	// Build logger from a configuration where Encoding is set to ECSJSONEncoding
-	cfg := zap.NewProductionConfig()
-	cfg.Encoding = ecszap.JSONEncoding
-	logger, err := cfg.Build()
-	if err != nil {
-		panic(err)
-	}
-	defer logger.Sync()
-
-	// Use strongly typed Field values
-	logger.Info("some logging info",
-		zap.String("foo", "bar"),
-		zap.Int("count", 17),
-	)
-
-	// OR
-
-	// Use sugar logger with key-value pairs
-	sugar := logger.Sugar()
-	sugar.Infow("some logging info",
-		"foo", "bar",
-		"count", 17,
-	)
+func main(){
+    // Build logger from a configuration where Encoding is set to ECSJSONEncoding
+    cfg := zap.NewProductionConfig()
+    cfg.Encoding = ecszap.JSONEncoding
+    logger, err := cfg.Build()
+    if err != nil {
+        panic(err)
+    }
+    defer logger.Sync()
+    
+    // Use strongly typed Field values
+    logger.Info("some logging info",
+        zap.String("foo", "bar"),
+        zap.Int("count", 17),
+    )
+    
+    // OR
+    
+    // Use sugar logger with key-value pairs
+    sugar := logger.Sugar()
+    sugar.Infow("some logging info",
+        "foo", "bar",
+        "count", 17,
+    )
+}
 ```
 
 Log output:
