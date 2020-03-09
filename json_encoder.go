@@ -21,8 +21,6 @@ import (
 	"time"
 
 	"go.uber.org/zap"
-
-	"go.uber.org/zap/buffer"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -37,7 +35,7 @@ func init() {
 }
 
 type jsonEncoder struct {
-	zapjsonEncoder zapcore.Encoder
+	zapcore.Encoder
 }
 
 // NewJSONEncoder creates a JSON encoder,
@@ -49,87 +47,15 @@ func NewJSONEncoder(cfg zapcore.EncoderConfig) zapcore.Encoder {
 	cfg.TimeKey = "@timestamp"
 	cfg.EncodeTime = epochMicrosTimeEncoder
 
-	enc := jsonEncoder{zapjsonEncoder: zapcore.NewJSONEncoder(cfg)}
+	enc := jsonEncoder{zapcore.NewJSONEncoder(cfg)}
 	enc.AddString("ecs.version", version)
 	return &enc
 }
 
 func (enc *jsonEncoder) Clone() zapcore.Encoder {
 	clone := &jsonEncoder{}
-	clone.zapjsonEncoder = enc.zapjsonEncoder.Clone()
+	clone.Encoder = enc.Encoder.Clone()
 	return clone
-}
-
-func (enc *jsonEncoder) AddArray(key string, arr zapcore.ArrayMarshaler) error {
-	return enc.zapjsonEncoder.AddArray(key, arr)
-}
-
-func (enc *jsonEncoder) AddObject(key string, obj zapcore.ObjectMarshaler) error {
-	return enc.zapjsonEncoder.AddObject(key, obj)
-}
-
-func (enc *jsonEncoder) AddBinary(key string, val []byte) {
-	enc.zapjsonEncoder.AddBinary(key, val)
-}
-
-func (enc *jsonEncoder) AddByteString(key string, val []byte) {
-	enc.zapjsonEncoder.AddByteString(key, val)
-}
-
-func (enc *jsonEncoder) AddBool(key string, val bool) {
-	enc.zapjsonEncoder.AddBool(key, val)
-}
-
-func (enc *jsonEncoder) AddComplex128(key string, val complex128) {
-	enc.zapjsonEncoder.AddComplex128(key, val)
-}
-
-func (enc *jsonEncoder) AddDuration(key string, val time.Duration) {
-	enc.zapjsonEncoder.AddDuration(key, val)
-}
-
-func (enc *jsonEncoder) AddFloat64(key string, val float64) {
-	enc.zapjsonEncoder.AddFloat64(key, val)
-}
-
-func (enc *jsonEncoder) AddInt64(key string, val int64) {
-	enc.zapjsonEncoder.AddInt64(key, val)
-}
-
-func (enc *jsonEncoder) AddReflected(key string, obj interface{}) error {
-	return enc.zapjsonEncoder.AddReflected(key, obj)
-}
-
-func (enc *jsonEncoder) OpenNamespace(key string) {
-	enc.zapjsonEncoder.OpenNamespace(key)
-}
-
-func (enc *jsonEncoder) AddString(key, val string) {
-	enc.zapjsonEncoder.AddString(key, val)
-}
-
-func (enc *jsonEncoder) AddTime(key string, val time.Time) {
-	enc.zapjsonEncoder.AddTime(key, val)
-}
-
-func (enc *jsonEncoder) AddUint64(key string, val uint64) {
-	enc.zapjsonEncoder.AddUint64(key, val)
-}
-
-func (enc *jsonEncoder) AddComplex64(k string, v complex64) { enc.AddComplex128(k, complex128(v)) }
-func (enc *jsonEncoder) AddFloat32(k string, v float32)     { enc.AddFloat64(k, float64(v)) }
-func (enc *jsonEncoder) AddInt(k string, v int)             { enc.AddInt64(k, int64(v)) }
-func (enc *jsonEncoder) AddInt32(k string, v int32)         { enc.AddInt64(k, int64(v)) }
-func (enc *jsonEncoder) AddInt16(k string, v int16)         { enc.AddInt64(k, int64(v)) }
-func (enc *jsonEncoder) AddInt8(k string, v int8)           { enc.AddInt64(k, int64(v)) }
-func (enc *jsonEncoder) AddUint(k string, v uint)           { enc.AddUint64(k, uint64(v)) }
-func (enc *jsonEncoder) AddUint32(k string, v uint32)       { enc.AddUint64(k, uint64(v)) }
-func (enc *jsonEncoder) AddUint16(k string, v uint16)       { enc.AddUint64(k, uint64(v)) }
-func (enc *jsonEncoder) AddUint8(k string, v uint8)         { enc.AddUint64(k, uint64(v)) }
-func (enc *jsonEncoder) AddUintptr(k string, v uintptr)     { enc.AddUint64(k, uint64(v)) }
-
-func (enc *jsonEncoder) EncodeEntry(ent zapcore.Entry, fields []zapcore.Field) (*buffer.Buffer, error) {
-	return enc.zapjsonEncoder.EncodeEntry(ent, fields)
 }
 
 // epochMicrosTimeEncoder takes a time.Time and adds it to the encoder as
