@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
+package ecszap
 
 import (
 	"testing"
@@ -28,7 +28,7 @@ import (
 )
 
 func TestJSONEncoder(t *testing.T) {
-	enc := NewECSJSONEncoder(zap.NewDevelopmentEncoderConfig())
+	enc := NewJSONEncoder(zap.NewDevelopmentEncoderConfig())
 	entry := zapcore.Entry{
 		Level:   zapcore.DebugLevel,
 		Time:    time.Unix(1583484083, 953467845),

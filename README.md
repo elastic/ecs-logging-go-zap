@@ -25,9 +25,11 @@ require github.com/elastic/ecs-logging-go-zap master
 
 ## Example usage
 ```
+   ecszap "github.com/elastic/ecs-logging-go-zap"
+
 	// Build logger from a configuration where Encoding is set to ECSJSONEncoding
 	cfg := zap.NewProductionConfig()
-	cfg.Encoding = ECSJSONEncoding
+	cfg.Encoding = ecszap.JSONEncoding
 	logger, err := cfg.Build()
 	if err != nil {
 		panic(err)

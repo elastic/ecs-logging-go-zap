@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package main
+package ecszap
 
 import (
 	"time"
@@ -26,13 +26,13 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-const ECSJSONEncoding = "ecsjson"
+const JSONEncoding = "ecsjson"
 
 const version = "1.5.0"
 
 func init() {
-	zap.RegisterEncoder(ECSJSONEncoding, func(encoderConfig zapcore.EncoderConfig) (zapcore.Encoder, error) {
-		return NewECSJSONEncoder(encoderConfig), nil
+	zap.RegisterEncoder(JSONEncoding, func(encoderConfig zapcore.EncoderConfig) (zapcore.Encoder, error) {
+		return NewJSONEncoder(encoderConfig), nil
 	})
 }
 
@@ -40,10 +40,10 @@ type jsonEncoder struct {
 	zapjsonEncoder zapcore.Encoder
 }
 
-// NewECSJSONEncoder creates a JSON encoder,
+// NewJSONEncoder creates a JSON encoder,
 // populating a minimal set of Elastic common schema (ECS) values.
 // The ECSJSONEncoder uses zap.JSONEncoder internally.
-func NewECSJSONEncoder(cfg zapcore.EncoderConfig) zapcore.Encoder {
+func NewJSONEncoder(cfg zapcore.EncoderConfig) zapcore.Encoder {
 	cfg.MessageKey = "message"
 	cfg.LevelKey = "log.level"
 	cfg.TimeKey = "@timestamp"
