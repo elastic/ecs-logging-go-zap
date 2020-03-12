@@ -18,6 +18,8 @@
 package ecszap
 
 import (
+	"errors"
+	"runtime"
 	"testing"
 	"time"
 
@@ -27,26 +29,70 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+type tenc struct {
+	enc    *jsonEncoder
+	entry  zapcore.Entry
+	fields []zapcore.Field
+}
+
+func setup(cfg EncoderConfig) tenc {
+	return tenc{
+		enc: newJSONEncoder(cfg).(*jsonEncoder),
+		entry: zapcore.Entry{
+			Level:      zapcore.DebugLevel,
+			Time:       time.Unix(1583484083, 953467845),
+			Message:    "log message",
+			Caller:     zapcore.NewEntryCaller(runtime.Caller(0)),
+			Stack:      "stacktrace frames",
+			LoggerName: "ECS",
+		},
+		fields: []zapcore.Field{
+			zap.String("foo", "bar"),
+			zap.Int("count", 8),
+			zap.Error(errors.New("boom")),
+		}}
+}
+
 func TestJSONEncoder(t *testing.T) {
-	enc := NewJSONEncoder(zap.NewDevelopmentEncoderConfig())
-	entry := zapcore.Entry{
-		Level:   zapcore.DebugLevel,
-		Time:    time.Unix(1583484083, 953467845),
-		Message: "log message",
+	for _, tc := range []struct {
+		name     string
+		cfg      EncoderConfig
+		expected string
+	}{
+		{name: "full",
+			cfg: NewDefaultEncoderConfig(),
+			expected: `{"log.level": "debug",
+						"@timestamp": 1583484083953468,
+						"message": "log message",
+						"ecs.version": "1.5.0",
+						"log.origin.file.line": 45,
+						"log.origin.file.name": "ecs-logging-go-zap/json_encoder_test.go",
+						"log.origin.stacktrace": "stacktrace frames",
+						"log.logger": "ECS",
+						"foo": "bar",
+						"count": 8,
+						"error.message": "boom"}`},
+		{name: "skip",
+			cfg: func() EncoderConfig {
+				c := NewDefaultEncoderConfig()
+				c.SkipName = true
+				c.SkipStacktrace = true
+				c.SkipCaller = true
+				return c
+			}(),
+			expected: `{"log.level": "debug",
+						"@timestamp": 1583484083953468,
+						"message": "log message",
+						"ecs.version": "1.5.0",
+						"foo": "bar",
+						"count": 8,
+						"error.message": "boom"}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			te := setup(tc.cfg)
+			buf, err := te.enc.EncodeEntry(te.entry, te.fields)
+			require.NoError(t, err)
+			assert.JSONEq(t, tc.expected, buf.String())
+		})
 	}
-	fields := []zapcore.Field{
-		zap.String("foo", "bar"),
-		zap.Int("count", 8),
-	}
-	buf, err := enc.EncodeEntry(entry, fields)
-	require.NoError(t, err)
-	expected := `{
-		"log.level": "DEBUG",
-		"@timestamp": 1583484083953468,
-		"message": "log message",
-		"ecs.version": "1.5.0",
-		"foo": "bar",
-		"count": 8
-	}`
-	assert.JSONEq(t, expected, buf.String())
 }

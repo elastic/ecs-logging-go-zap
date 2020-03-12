@@ -15,44 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
-// +build mage
-
-package main
+package ecszap
 
 import (
-	"fmt"
-	"os/exec"
+	"errors"
+	"os"
+	"testing"
 
-	"github.com/magefile/mage/mg" // mg contains helpful utility functions, like Deps
+	"github.com/stretchr/testify/assert"
+
+	"go.uber.org/zap/zapcore"
+
+	"go.uber.org/zap"
 )
 
-var Default = Update
-
-// Update go files to contain license header
-func Update() error {
-	mg.Deps(InstallDeps)
-	fmt.Println("Updating...")
-	for _, cmd := range []*exec.Cmd{
-		exec.Command("go-licenser", "."),
-		exec.Command("go", "fmt"),
-		exec.Command("go", "mod", "tidy"),
-	} {
-		if err := cmd.Run(); err != nil {
-			return err
-		}
+func TestCore(t *testing.T) {
+	c := NewCore(NewDefaultEncoderConfig(), os.Stdout, zap.DebugLevel)
+	fields := []zapcore.Field{
+		zap.String("foo", "bar"),
+		zap.Error(errors.New("boom")),
 	}
-	return nil
-}
-
-// Install development dependencies
-func InstallDeps() error {
-	fmt.Println("Installing Deps...")
-	for _, cmd := range []*exec.Cmd{
-		exec.Command("go", "get", "github.com/elastic/go-licenser"),
-	} {
-		if err := cmd.Run(); err != nil {
-			return err
-		}
+	c = c.With(fields)
+	s := c.(*core).enc.(*jsonEncoder).buf.String()
+	// when calling internal implementation of addFields fields will be stored in ECS format
+	for _, k := range []string{"ecs.version", "error.message", "foo"} {
+		assert.Contains(t, s, k)
 	}
-	return nil
 }
