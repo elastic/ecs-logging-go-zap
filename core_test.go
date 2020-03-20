@@ -19,26 +19,49 @@ package ecszap
 
 import (
 	"errors"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"go.uber.org/zap/zapcore"
+	"github.com/stretchr/testify/require"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 func TestCore(t *testing.T) {
-	c := NewCore(NewDefaultEncoderConfig(), os.Stdout, zap.DebugLevel)
+	entry := zapcore.Entry{Level: zapcore.DebugLevel}
 	fields := []zapcore.Field{
 		zap.String("foo", "bar"),
 		zap.Error(errors.New("boom")),
 	}
-	c = c.With(fields)
-	s := c.(*core).enc.(*jsonEncoder).buf.String()
-	// when calling internal implementation of addFields fields will be stored in ECS format
-	for _, k := range []string{"ecs.version", "error.message", "foo"} {
-		assert.Contains(t, s, k)
+	assertLogged := func(t *testing.T, out testOutput) {
+		out.assertContains(t, []string{"error", "foo"})
+		assert.Equal(t,
+			map[string]interface{}{"message": "boom"},
+			out.m["error"].(map[string]interface{}))
+		assert.Equal(t, "bar", out.m["foo"])
 	}
+
+	t.Run("With", func(t *testing.T) {
+		out := testOutput{}
+		c := NewCore(NewDefaultEncoderConfig(), &out, zap.DebugLevel)
+		c = c.With(fields)
+		require.NoError(t, c.Write(entry, nil))
+		assertLogged(t, out)
+	})
+
+	t.Run("Write", func(t *testing.T) {
+		out := testOutput{}
+		c := NewCore(NewDefaultEncoderConfig(), &out, zap.DebugLevel)
+		require.NoError(t, c.Write(entry, fields))
+		assertLogged(t, out)
+	})
+
+	t.Run("Check", func(t *testing.T) {
+		out := testOutput{}
+		c := NewCore(NewDefaultEncoderConfig(), &out, zap.DebugLevel)
+		ce := c.Check(entry, &zapcore.CheckedEntry{})
+		ce.Write(fields...)
+		assertLogged(t, out)
+	})
 }

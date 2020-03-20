@@ -18,6 +18,7 @@
 package ecszap
 
 import (
+	"bytes"
 	"errors"
 	"runtime"
 	"testing"
@@ -27,7 +28,7 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func BenchmarkJSONEnc(b *testing.B) {
+func BenchmarkCore(b *testing.B) {
 	fields := []zapcore.Field{
 		zap.String("str", "foo"),
 		zap.Int64("int64-1", 1),
@@ -37,53 +38,88 @@ func BenchmarkJSONEnc(b *testing.B) {
 		zap.String("string2", "🙊"),
 		zap.Bool("bool", true),
 	}
-	err1 := errors.New("boom")
-	err2 := errs.Wrap(err1, "crash")
-	err3 := multiErr{msg: "boom/crash", errors: []error{err1, err2}}
-	fieldsWithErr := append(fields,
-		zap.Error(err1),
-		zap.Error(err2),
-		zap.Error(err3))
-	caller := zapcore.NewEntryCaller(runtime.Caller(0))
-	zapEncConfig := zap.NewDevelopmentEncoderConfig()
-	encConfig := NewDefaultEncoderConfig()
+	cores := map[string]func(ws zapcore.WriteSyncer) zapcore.Core{
+		"zap": func(ws zapcore.WriteSyncer) zapcore.Core {
+			enc := zapcore.NewJSONEncoder(zap.NewDevelopmentEncoderConfig())
+			return zapcore.NewCore(enc, ws, zap.DebugLevel)
+		},
+		"ecs": func(ws zapcore.WriteSyncer) zapcore.Core {
+			return NewCore(NewDefaultEncoderConfig(), ws, zap.DebugLevel)
+		},
+	}
 
-	for name, enc := range map[string]zapcore.Encoder{
-		"zapcore": zapcore.NewJSONEncoder(zapEncConfig),
-		"ecszap":  newJSONEncoder(encConfig),
-	} {
-		b.ResetTimer()
-
+	for name, new := range cores {
 		b.Run(name+"/fields", func(b *testing.B) {
+			out := testWriteSyncer{}
+			core := new(&out)
+			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				buf, _ := enc.EncodeEntry(zapcore.Entry{
+				core.Write(zapcore.Entry{
 					Message: "fake",
 					Level:   zapcore.DebugLevel,
 				}, fields)
-				buf.Free()
+				out.reset()
 			}
 		})
 
 		b.Run(name+"/caller", func(b *testing.B) {
+			caller := zapcore.NewEntryCaller(runtime.Caller(0))
+			out := testWriteSyncer{}
+			core := new(&out)
+			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				buf, _ := enc.EncodeEntry(zapcore.Entry{
+				core.Write(zapcore.Entry{
 					Message: "fake",
 					Level:   zapcore.DebugLevel,
 					Caller:  caller,
 				}, fields)
-				buf.Free()
+				out.reset()
 			}
 		})
 
 		b.Run(name+"/errors", func(b *testing.B) {
+			err1 := errors.New("boom")
+			err2 := errs.Wrap(err1, "crash")
+			err3 := testErr{msg: "boom/crash", errors: []error{err1, err2}}
+			fieldsWithErr := append(fields,
+				zap.Error(err1),
+				zap.Error(err2),
+				zap.Error(err3),
+			)
+			out := testWriteSyncer{}
+			core := new(&out)
+			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
-				buf, _ := enc.EncodeEntry(zapcore.Entry{
+				core.Write(zapcore.Entry{
 					Message: "fake",
 					Level:   zapcore.DebugLevel,
-					Caller:  caller,
 				}, fieldsWithErr)
-				buf.Free()
+				out.reset()
 			}
 		})
 	}
+}
+
+type testWriteSyncer struct {
+	b bytes.Buffer
+}
+
+func (o *testWriteSyncer) Write(p []byte) (int, error) {
+	return o.b.Write(p)
+}
+
+func (o *testWriteSyncer) Sync() error { return nil }
+
+func (o *testWriteSyncer) reset() { o.b.Reset() }
+
+type testErr struct {
+	msg    string
+	errors []error
+}
+
+func (e testErr) Error() string {
+	return e.msg
+}
+func (e testErr) Errors() []error {
+	return e.errors
 }

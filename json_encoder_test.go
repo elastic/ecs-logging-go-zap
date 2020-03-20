@@ -18,8 +18,7 @@
 package ecszap
 
 import (
-	"errors"
-	"runtime"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -29,70 +28,103 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type tenc struct {
-	enc    *jsonEncoder
-	entry  zapcore.Entry
-	fields []zapcore.Field
-}
-
-func setup(cfg EncoderConfig) tenc {
-	return tenc{
-		enc: newJSONEncoder(cfg).(*jsonEncoder),
-		entry: zapcore.Entry{
-			Level:      zapcore.DebugLevel,
-			Time:       time.Unix(1583484083, 953467845),
-			Message:    "log message",
-			Caller:     zapcore.NewEntryCaller(runtime.Caller(0)),
-			Stack:      "stacktrace frames",
-			LoggerName: "ECS",
-		},
-		fields: []zapcore.Field{
-			zap.String("foo", "bar"),
-			zap.Int("count", 8),
-			zap.Error(errors.New("boom")),
-		}}
-}
-
-func TestJSONEncoder(t *testing.T) {
+func TestJSONEncoder_EncodeEntry(t *testing.T) {
+	path := "/Home/foo/coding/ecs-logging-go-zap/json_encoder_test.go"
+	caller := zapcore.NewEntryCaller(0, path, 30, true)
 	for _, tc := range []struct {
 		name     string
 		cfg      EncoderConfig
+		input    string
 		expected string
 	}{
-		{name: "full",
+		{name: "defaultConfig",
 			cfg: NewDefaultEncoderConfig(),
 			expected: `{"log.level": "debug",
 						"@timestamp": 1583484083953468,
 						"message": "log message",
 						"ecs.version": "1.5.0",
-						"log.origin.file.line": 45,
-						"log.origin.file.name": "ecs-logging-go-zap/json_encoder_test.go",
+						"log.origin": {
+							"file.line": 30,
+							"file.name": "ecs-logging-go-zap/json_encoder_test.go"
+						},
 						"log.origin.stacktrace": "stacktrace frames",
 						"log.logger": "ECS",
 						"foo": "bar",
-						"count": 8,
-						"error.message": "boom"}`},
-		{name: "skip",
-			cfg: func() EncoderConfig {
-				c := NewDefaultEncoderConfig()
-				c.SkipName = true
-				c.SkipStacktrace = true
-				c.SkipCaller = true
-				return c
-			}(),
+						"count": 8}`},
+		{name: "defaultUnmarshal",
+			input: "",
 			expected: `{"log.level": "debug",
 						"@timestamp": 1583484083953468,
 						"message": "log message",
 						"ecs.version": "1.5.0",
 						"foo": "bar",
-						"count": 8,
-						"error.message": "boom"}`},
+						"count": 8}`},
+		{name: "shortCaller",
+			input: `{"lineEnding": "\n",
+					 "nameEncoder": "full",
+					 "levelEncoder": "upper",
+				 	 "durationEncoder": "ms",
+					 "callerEncoder": "short"}`,
+			expected: `{"log.level": "debug",
+						"@timestamp": 1583484083953468,
+						"message": "log message",
+						"ecs.version": "1.5.0",
+						"foo": "bar",
+						"count": 8}`},
+		{name: "fullCaller",
+			input: `{"callerEncoder": "full"}`,
+			expected: `{"log.level": "debug",
+						"@timestamp": 1583484083953468,
+						"message": "log message",
+						"ecs.version": "1.5.0",
+						"foo": "bar",
+						"count": 8}`},
+		{name: "enabled",
+			input: `{"enableName": true, "enableStacktrace": true, "enableCaller":true}`,
+			expected: `{"log.level": "debug",
+						"@timestamp": 1583484083953468,
+						"message": "log message",
+						"ecs.version": "1.5.0",
+						"log.origin": {
+							"file.line": 30,
+							"file.name": "ecs-logging-go-zap/json_encoder_test.go"
+						},
+						"log.origin.stacktrace": "stacktrace frames",
+						"log.logger": "ECS",
+						"foo": "bar",
+						"count": 8}`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			te := setup(tc.cfg)
-			buf, err := te.enc.EncodeEntry(te.entry, te.fields)
+			// setup
+			entry := zapcore.Entry{
+				Level:      zapcore.DebugLevel,
+				Time:       time.Unix(1583484083, 953467845),
+				Message:    "log message",
+				Caller:     caller,
+				Stack:      "stacktrace frames",
+				LoggerName: "ECS",
+			}
+			fields := []zapcore.Field{
+				zap.String("foo", "bar"),
+				zap.Int("count", 8),
+			}
+			//parse config and encode
+			cfg := tc.cfg
+			if tc.input != "" {
+				require.NoError(t, json.Unmarshal([]byte(tc.input), &cfg))
+			}
+			enc := NewJSONEncoder(cfg).(*jsonEncoder)
+			buf, err := enc.EncodeEntry(entry, fields)
 			require.NoError(t, err)
-			assert.JSONEq(t, tc.expected, buf.String())
+			out := buf.String()
+			assert.JSONEq(t, tc.expected, out)
 		})
 	}
+}
+
+func TestJsonEncoder_Clone(t *testing.T) {
+	enc := NewJSONEncoder(NewDefaultEncoderConfig())
+	encClone := enc.Clone()
+	assert.NotSame(t, enc, encClone)
+	assert.NotSame(t, &enc.(*jsonEncoder).Encoder, &encClone.(*jsonEncoder).Encoder)
 }

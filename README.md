@@ -26,6 +26,13 @@ require github.com/elastic/ecs-logging-go-zap master
 ## Example usage
 ```
 import (
+	"errors"
+	"os"
+
+	errs "github.com/pkg/errors"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
 	ecszap "github.com/elastic/ecs-logging-go-zap"
 )
 
@@ -51,12 +58,16 @@ func main() {
 	//	  "@timestamp":1584029304244694,
 	//	  "message":"some logging info",
 	//	  "log.logger":"mylogger",
-	//	  "log.origin.file.name":"example/example.go",
-	//	  "log.origin.file.line":42,
+	//	  "log.origin":{
+	//	    "file.name":"example/example.go",
+	//	    "file.line":54
+	//    },
 	//	  "ecs.version":"1.5.0",
 	//	  "custom":"foo",
 	//	  "count":17,
-	//	  "error.message":"boom"
+	//	  "error":{
+	//		"message":"boom"
+	//	  }
 	//	}
 
 	// Log a wrapped error
@@ -68,12 +79,16 @@ func main() {
 	//	  "@timestamp":1584029304244786,
 	//	  "message":"some error",
 	//	  "log.logger":"mylogger",
-	//    "log.origin.file.name":"example/example.go",
-	//	  "log.origin.file.line":50,
+	//	  "log.origin":{
+	//	    "file.name":"example/example.go",
+	//	    "file.line":54
+	//    },
 	//	  "ecs.version":"1.5.0",
 	//	  "custom":"foo",
-	//	  "error.message":"crash: boom",
-	//	  "error.stacktrace": "\nexample.example\n\t/Users/xyz/example/example.go:50\nruntime.example\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/proc.go:203\nruntime.goexit\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/asm_amd64.s:1357"
+	//	  "error":{
+	//	    "message":"crash: boom",
+	//	    "stacktrace": "\nexample.example\n\t/Users/xyz/example/example.go:50\nruntime.example\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/proc.go:203\nruntime.goexit\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/asm_amd64.s:1357"
+	//    }
 	//	}
 
 	// Use sugar logger with key-value pairs
@@ -88,13 +103,38 @@ func main() {
 	//	  "@timestamp":1584029304244835,
 	//	  "message":"some logging info",
 	//	  "log.logger":"mylogger",
-	//	  "log.origin.file.name":"example/example.go",
-	//	  "log.origin.file.line":54,
+	//	  "log.origin":{
+	//	    "file.name":"example/example.go",
+	//	    "file.line":54
+	//    },
 	//	  "ecs.version":"1.5.0",
 	//	  "custom":"foo",
 	//	  "foo":"bar",
 	//	  "count":17
 	//	}
+
+	// Advanced use case: wrap a custom core with ecszap core
+	// create your own non-ECS core using a ecszap JSONEncoder
+	encoder := ecszap.NewJSONEncoder(ecszap.NewDefaultEncoderConfig())
+	core := zapcore.NewCore(encoder, os.Stdout, zap.DebugLevel)
+	// wrap your own core with the ecszap core
+	logger := zap.New(ecszap.WrapCore(core), zap.AddCaller())
+	defer logger.Sync()
+	logger.With(zap.Error(errors.New("wrapCore"))).Error("boom")
+	// Log Output:
+	//	{
+	//	  "log.level":"error",
+	//	  "@timestamp":1584700435844132,
+	//	  "log.origin":{
+	//	    "file.name":"main/main.go",
+	//	    "file.line":221
+	//	  },
+	//	  "message":"boom",
+	//	  "ecs.version":"1.5.0",
+	//	  "error":{
+	//	    "message":"wrapCore"
+	//	  }
+	//  }
 }
 ```
 
@@ -109,7 +149,11 @@ go test ./...
 ```
 
 ## Contribute
-Create a Pull Request from your own fork. Run `mage` to update and format you changes before submitting. 
+Create a Pull Request from your own fork. 
+
+Run `mage` to update and format you changes before submitting. 
+
+Add new dependencies to the NOTICE.txt.
 
 ## License
 This software is licensed under the [Apache 2 license](https://github.com/elastic/ecs-logging-go/zap/blob/master/LICENSE). 

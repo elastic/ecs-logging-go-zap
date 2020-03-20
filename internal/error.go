@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package ecszap
+package internal
 
 import (
 	"fmt"
@@ -25,15 +25,25 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func encodeError(err error, enc zapcore.ObjectEncoder) error {
-	enc.AddString("error.message", err.Error())
-	if e, ok := err.(stackTracer); ok {
-		enc.AddString("error.stacktrace", fmt.Sprintf("%+v", e.StackTrace()))
+type ecsError struct {
+	error
+}
+
+func NewError(err error) zapcore.ObjectMarshaler {
+	return ecsError{err}
+}
+
+func (err ecsError) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("message", err.Error())
+	if e, ok := err.error.(stackTracer); ok {
+		enc.AddString("stacktrace", fmt.Sprintf("%+v", e.StackTrace()))
 	}
 
 	// TODO(simi): handle new error
-	if e, ok := err.(errorGroup); ok {
-		return enc.AddArray("error.cause", errArray(e.Errors()))
+	if e, ok := err.error.(errorGroup); ok {
+		if errorCause := e.Errors(); len(errorCause) > 0 {
+			return enc.AddArray("cause", errArray(errorCause))
+		}
 	}
 	return nil
 }
@@ -81,7 +91,7 @@ func (e *errArrayElem) MarshalLogArray(arr zapcore.ArrayEncoder) error {
 }
 
 func (e *errArrayElem) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	return encodeError(e.err, enc)
+	return ecsError{e.err}.MarshalLogObject(enc)
 }
 
 func (e *errArrayElem) Free() {

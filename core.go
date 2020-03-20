@@ -19,33 +19,50 @@ package ecszap
 
 import (
 	"go.uber.org/zap/zapcore"
+
+	"github.com/elastic/ecs-logging-go-zap/internal"
 )
 
 // NewCore creates a zapcore.Core that uses an ECS conform JSON Encoder internally.
 // It largely falls back to zapcore.Core functionality,
 // but implements dedicated parts required to be aligned with ECS.
 func NewCore(cfg EncoderConfig, ws zapcore.WriteSyncer, enab zapcore.LevelEnabler) zapcore.Core {
-	return newCore(newJSONEncoder(cfg), ws, enab)
+	return &core{zapcore.NewCore(NewJSONEncoder(cfg), ws, enab)}
+}
+
+// WrapCore wraps a given core with the ecszap.core functionality
+func WrapCore(c zapcore.Core) zapcore.Core {
+	return &core{c}
 }
 
 type core struct {
 	zapcore.Core
-	enab zapcore.LevelEnabler
-	enc  zapcore.Encoder
-	out  zapcore.WriteSyncer
 }
 
 func (c *core) With(fields []zapcore.Field) zapcore.Core {
-	clone := newCore(c.enc.Clone(), c.out, c.enab)
-	addFields(clone.enc, fields)
-	return clone
+	convertToECSFields(fields)
+	return &core{c.Core.With(fields)}
 }
 
-func newCore(enc zapcore.Encoder, ws zapcore.WriteSyncer, enab zapcore.LevelEnabler) *core {
-	return &core{
-		enab: enab,
-		enc:  enc,
-		out:  ws,
-		Core: zapcore.NewCore(enc, ws, enab),
+func (c *core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+	if c.Enabled(ent.Level) {
+		return ce.AddCore(ent, c)
+	}
+	return ce
+}
+
+func (c *core) Write(ent zapcore.Entry, fields []zapcore.Field) error {
+	convertToECSFields(fields)
+	return c.Core.Write(ent, fields)
+}
+
+func convertToECSFields(fields []zapcore.Field) {
+	for i := range fields {
+		if f := fields[i]; f.Type == zapcore.ErrorType {
+			fields[i] = zapcore.Field{Key: "error",
+				Type:      zapcore.ObjectMarshalerType,
+				Interface: internal.NewError(f.Interface.(error)),
+			}
+		}
 	}
 }
