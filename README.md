@@ -1,6 +1,10 @@
 # Elastic Common Schema (ECS) support for uber-go/zap logger
 
 Use this encoder for automatically adding a minimal set of ECS fields to your logs, when using [uber-go/zap](https://github.com/uber-go/zap). The encoder logs in JSON format, using the default [zapcore/json_encoder](https://github.com/uber-go/zap/blob/master/zapcore/json_encoder.go) internally. 
+The encoder logs in JSON format, using the default [zapcore/json_encoder](https://github.com/uber-go/zap/blob/master/zapcore/json_encoder.go) internally. 
+Additionally it allows to manually add ECS compliant fields. 
+
+NOTE: The logger does not take care of deduplication of fields.
 
 Following fields will be added by default:
 ```
@@ -47,6 +51,12 @@ func main() {
 	logger = logger.With(zap.String("custom", "foo"))
 	logger = logger.Named("mylogger")
 
+	// Add additional global ECS fields to logger
+	logger = logger.With(
+		ecszap.Service.Name("serviceA"),
+		ecszap.Service.Version("2.1.3"),
+		ecszap.Process.PID(int64(os.Getpid())))
+
 	// Use strongly typed Field values
 	logger.Info("some logging info",
 		zap.Int("count", 17),
@@ -64,6 +74,9 @@ func main() {
 	//	"message":"some logging info",
 	//	"ecs.version":"1.5.0",
 	//	"custom":"foo",
+	//	"service.name":"serviceA",
+	//	"service.version":"2.1.3",
+	//	"process.pid":73421,
 	//	"count":17,
 	//	"error":{
 	//		"message":"boom"
@@ -85,6 +98,9 @@ func main() {
 	//	"message":"some error",
 	//	"ecs.version":"1.5.0",
 	//	"custom":"foo",
+	//	"service.name":"serviceA",
+	//	"service.version":"2.1.3",
+	//	"process.pid":73421,
 	//	"error":{
 	//		"message":"crash: boom",
 	//		"stacktrace": "\nexample.example\n\t/Users/xyz/example/example.go:50\nruntime.example\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/proc.go:203\nruntime.goexit\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/asm_amd64.s:1357"
@@ -109,6 +125,9 @@ func main() {
 	//	"message":"some logging info",
 	//	"ecs.version":"1.5.0",
 	//	"custom":"foo",
+	//	"service.name":"serviceA",
+	//	"service.version":"2.1.3",
+	//	"process.pid":73421,
 	//	"foo":"bar",
 	//	"count":17
 	//}
@@ -151,7 +170,7 @@ go test ./...
 ## Contribute
 Create a Pull Request from your own fork. 
 
-Run `mage` to update and format you changes before submitting. 
+Run `ECS_BRANCH=version mage update` to update to the required ECS version and format you changes before submitting.
 
 Add new dependencies to the NOTICE.txt.
 

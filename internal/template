@@ -1,0 +1,76 @@
+package {{ .packageName }}
+
+// Do not manually change this file, as it is generated.
+// If you want to update the file, run `make update-ecs`
+
+import (
+        {{ range $key := .packages }}
+        "{{ $key }}"
+        {{ end }}
+        "go.uber.org/zap"
+        "go.uber.org/zap/zapcore"
+)
+
+// Version is the current ECS version available in the ecs package.
+const Version = "{{ .schema.Version }}"
+
+const (
+{{ range $ns := .schema.Namespaces }}
+    {{ range $value := $ns.Values  }}
+    {{ $ns.FlatName | goName }}{{ $value.Name | goName }}Key = "{{ $value.FlatName }}"
+    {{ end }}
+{{ end }}
+)
+
+var (
+{{ range $ns := .schema.Top }}
+  // {{ $ns.Name | goName }} provides fields in the ECS {{ $ns.FlatName }} namespace.
+    {{ if $ns.Description -}}{{ $ns.Description | goComment }}{{ end -}}
+  {{ $ns.Name | goName }} = ns{{ $ns.FlatName | goName }}{}
+{{ end }}
+)
+
+
+{{ range $value := .schema.Base }}
+    {{ if ne $value.Type.Constructor "Any" }}
+  // {{ $value.Name | goName }} create the ECS compliant '{{ $value.FlatName}}' field.
+  {{ $value.Description | goComment }}
+    func {{ $value.Name | goName }}(value {{ $value.Type.Name }}) zapcore.Field {
+                return ecs{{ $value.Type.Constructor }}("{{ $value.FlatName }}", value)
+    }
+    {{ end }}
+{{ end }}
+
+{{ range $ns := .schema.Namespaces }}
+// ## {{ $ns.FlatName }} fields
+
+ {{ range $value := $ns.Values }}
+    {{/* Filter out generic object types that would accept a map[string]interface */}}
+    {{ if ne $value.Type.Constructor "Any" }}
+        // {{ $value.Name | goName }} create the ECS compliant '{{ $value.FlatName}}' field.
+        {{ $value.Description | goComment }}
+        func (ns{{ $ns.FlatName | goName }}) {{ $value.Name | goName }}(value {{ $value.Type.Name }}) zapcore.Field {
+                return ecs{{ $value.Type.Constructor }}("{{ $value.FlatName }}", value)
+        }
+        {{ end }}
+    {{ end }}
+{{ end }}
+
+
+type (
+{{ range $ns := .schema.Namespaces }}
+  ns{{ $ns.FlatName | goName }} struct {
+      {{ range $sub := $ns.Children }}
+        {{ $sub.Description | goComment }}
+        {{ $sub.Name | goName }} ns{{ $sub.FlatName | goName }}
+        {{ end }}
+    }
+{{ end }}
+)
+
+func ecsTime(key string, val time.Time) zapcore.Field    { return zap.Time(key, val) }
+func ecsString(key, val string) zapcore.Field            { return zap.String(key, val) }
+func ecsBool(key string, val bool) zapcore.Field         { return zap.Bool(key, val) }
+func ecsInt(key string, val int) zapcore.Field           { return zap.Int(key, val) }
+func ecsInt64(key string, val int64) zapcore.Field       { return zap.Int64(key, val) }
+func ecsFloat64(key string, val float64) zapcore.Field   { return zap.Float64(key, val) }

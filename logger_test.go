@@ -71,11 +71,14 @@ func TestECSZapLogger_With(t *testing.T) {
 
 	// Adding logger wide fields and a logger name
 	out.reset()
-	logger = logger.With(zap.String("foo", "bar"))
-	logger = logger.With(zap.Error(errors.New("wrapCore Error")))
+	logger = logger.With(
+		zap.String("foo", "bar"),
+		zap.Error(errors.New("wrapCore Error")),
+		Service.Name("serviceA"),
+		Service.Version("2.0.3"))
 	logger = logger.Named("mylogger")
 	logger.Debug("debug message")
-	out.requireContains(t, []string{"log.logger", "foo", "error"})
+	out.requireContains(t, []string{"log.logger", "foo", "error", "service.name", "service.version"})
 
 	// Use loosely typed logger
 	out.reset()

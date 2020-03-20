@@ -19,6 +19,7 @@ package ecszap
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 
@@ -39,60 +40,40 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 	}{
 		{name: "defaultConfig",
 			cfg: NewDefaultEncoderConfig(),
-			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
-						"message": "log message",
-						"ecs.version": "1.5.0",
-						"log.origin": {
+			expected: `"log.origin": {
 							"file.line": 30,
 							"file.name": "ecs-logging-go-zap/json_encoder_test.go"
 						},
 						"log.origin.stacktrace": "stacktrace frames",
-						"log.logger": "ECS",
-						"foo": "bar",
-						"count": 8}`},
+						"log.logger": "ECS",`},
 		{name: "defaultUnmarshal",
-			input: "",
-			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
-						"message": "log message",
-						"ecs.version": "1.5.0",
-						"foo": "bar",
-						"count": 8}`},
+			input:    "",
+			expected: ``},
 		{name: "shortCaller",
 			input: `{"lineEnding": "\n",
 					 "nameEncoder": "full",
 					 "levelEncoder": "upper",
 				 	 "durationEncoder": "ms",
-					 "callerEncoder": "short"}`,
-			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
-						"message": "log message",
-						"ecs.version": "1.5.0",
-						"foo": "bar",
-						"count": 8}`},
+					 "callerEncoder": "short",
+					 "enableCaller":true}`,
+			expected: `"log.origin": {
+							"file.line": 30,
+							"file.name": "ecs-logging-go-zap/json_encoder_test.go"
+						},`},
 		{name: "fullCaller",
-			input: `{"callerEncoder": "full"}`,
-			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
-						"message": "log message",
-						"ecs.version": "1.5.0",
-						"foo": "bar",
-						"count": 8}`},
+			input: `{"callerEncoder": "full","enableCaller":true}`,
+			expected: `"log.origin": {
+							"file.line": 30,
+							"file.name": "/Home/foo/coding/ecs-logging-go-zap/json_encoder_test.go"
+						},`},
 		{name: "enabled",
 			input: `{"enableName": true, "enableStacktrace": true, "enableCaller":true}`,
-			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
-						"message": "log message",
-						"ecs.version": "1.5.0",
-						"log.origin": {
+			expected: `"log.origin": {
 							"file.line": 30,
 							"file.name": "ecs-logging-go-zap/json_encoder_test.go"
 						},
 						"log.origin.stacktrace": "stacktrace frames",
-						"log.logger": "ECS",
-						"foo": "bar",
-						"count": 8}`},
+						"log.logger": "ECS",`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			// setup
@@ -107,7 +88,21 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 			fields := []zapcore.Field{
 				zap.String("foo", "bar"),
 				zap.Int("count", 8),
+				Service.Name("serviceA"),
+				Service.Version("2.1.3"),
 			}
+			expected := fmt.Sprintf(`{
+					%v
+					"log.level": "debug",
+					"@timestamp": 1583484083953468,
+					"message": "log message",
+					"ecs.version": "%s",
+					"foo": "bar",
+					"count": 8,
+					"service.name": "serviceA",
+					"service.version":"2.1.3"
+				}`, tc.expected, Version)
+
 			//parse config and encode
 			cfg := tc.cfg
 			if tc.input != "" {
@@ -117,7 +112,7 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 			buf, err := enc.EncodeEntry(entry, fields)
 			require.NoError(t, err)
 			out := buf.String()
-			assert.JSONEq(t, tc.expected, out)
+			assert.JSONEq(t, expected, out)
 		})
 	}
 }

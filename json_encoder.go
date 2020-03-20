@@ -23,8 +23,6 @@ import (
 	"github.com/elastic/ecs-logging-go-zap/internal"
 )
 
-const version = "1.5.0"
-
 var (
 	defaultLineEnding     = zapcore.DefaultLineEnding
 	defaultEncodeName     = zapcore.FullNameEncoder
@@ -106,7 +104,7 @@ type jsonEncoder struct {
 // The ECSJSONEncoder uses zap.JSONEncoder internally.
 func NewJSONEncoder(encCfg EncoderConfig) zapcore.Encoder {
 	enc := jsonEncoder{zapcore.NewJSONEncoder(encCfg.convertToZapCoreEncoderConfig())}
-	enc.AddString("ecs.version", version)
+	enc.AddString("ecs.version", Version)
 	return &enc
 }
 
