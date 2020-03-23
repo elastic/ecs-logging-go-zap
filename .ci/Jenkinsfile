@@ -9,6 +9,11 @@ pipeline {
     BASE_DIR = "src/go.elastic.co/apm/${env.REPO}"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
+    HOME = "${env.WORKSPACE}"
+    PATH = "${env.HOME}/bin:${env.PATH}"
+    GO111MODULE = 'on'
+    GO_VERSION = '1.13.9'
+    GOPATH = "${env.WORKSPACE}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -34,16 +39,22 @@ pipeline {
       }
     }
     stage('Sanity checks') {
-      environment {
-        HOME = "${env.WORKSPACE}"
-        PATH = "${env.HOME}/bin:${env.PATH}"
-      }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
         unstash 'source'
         dir("${BASE_DIR}"){
           preCommit(commit: "${GIT_BASE_COMMIT}", junit: true)
+        }
+      }
+    }
+    stage('Test') {
+      options { skipDefaultCheckout() }
+      steps {
+        deleteDir()
+        unstash 'source'
+        dir("${BASE_DIR}"){
+          sh script: '.ci/scripts/run-tests.sh', label: 'Run tests'
         }
       }
     }
