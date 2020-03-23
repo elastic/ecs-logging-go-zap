@@ -13,3 +13,4 @@ go test ./... | tee ${OUT_FILE}
 echo "Transform test report to JUnit"
 go get -v -u github.com/jstemmer/go-junit-report
 cat "${OUT_FILE}" | go-junit-report > build/junit-report.xml
+cat build/junit-report.xml
