@@ -9,6 +9,8 @@ pipeline {
     BASE_DIR = "src/go.elastic.co/apm/${env.REPO}"
     NOTIFY_TO = credentials('notify-to')
     JOB_GCS_BUCKET = credentials('gcs-bucket')
+    HOME = "${env.WORKSPACE}"
+    PATH = "${env.HOME}/bin:${env.PATH}"
   }
   options {
     timeout(time: 1, unit: 'HOURS')
@@ -34,10 +36,6 @@ pipeline {
       }
     }
     stage('Sanity checks') {
-      environment {
-        HOME = "${env.WORKSPACE}"
-        PATH = "${env.HOME}/bin:${env.PATH}"
-      }
       options { skipDefaultCheckout() }
       steps {
         deleteDir()
