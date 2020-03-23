@@ -27,7 +27,7 @@ import (
 // It largely falls back to zapcore.Core functionality,
 // but implements dedicated parts required to be aligned with ECS.
 func NewCore(cfg EncoderConfig, ws zapcore.WriteSyncer, enab zapcore.LevelEnabler) zapcore.Core {
-	return &core{zapcore.NewCore(NewJSONEncoder(cfg), ws, enab)}
+	return WrapCore(zapcore.NewCore(NewJSONEncoder(cfg), ws, enab))
 }
 
 // WrapCore wraps a given core with the ecszap.core functionality
@@ -39,26 +39,26 @@ type core struct {
 	zapcore.Core
 }
 
-func (c *core) With(fields []zapcore.Field) zapcore.Core {
+func (c core) With(fields []zapcore.Field) zapcore.Core {
 	convertToECSFields(fields)
 	return &core{c.Core.With(fields)}
 }
 
-func (c *core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
+func (c core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if c.Enabled(ent.Level) {
 		return ce.AddCore(ent, c)
 	}
 	return ce
 }
 
-func (c *core) Write(ent zapcore.Entry, fields []zapcore.Field) error {
+func (c core) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 	convertToECSFields(fields)
 	return c.Core.Write(ent, fields)
 }
 
 func convertToECSFields(fields []zapcore.Field) {
-	for i := range fields {
-		if f := fields[i]; f.Type == zapcore.ErrorType {
+	for i, f := range fields {
+		if f.Type == zapcore.ErrorType {
 			fields[i] = zapcore.Field{Key: "error",
 				Type:      zapcore.ObjectMarshalerType,
 				Interface: internal.NewError(f.Interface.(error)),

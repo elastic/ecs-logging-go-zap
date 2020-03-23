@@ -29,7 +29,7 @@ import (
 	"errors"
 	"os"
 
-	errs "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -53,43 +53,43 @@ func main() {
 		zap.Error(errors.New("boom")),
 	)
 	// Log Output:
-	//	{
-	//	  "log.level":"info",
-	//	  "@timestamp":1584029304244694,
-	//	  "message":"some logging info",
-	//	  "log.logger":"mylogger",
-	//	  "log.origin":{
-	//	    "file.name":"example/example.go",
-	//	    "file.line":54
-	//    },
-	//	  "ecs.version":"1.5.0",
-	//	  "custom":"foo",
-	//	  "count":17,
-	//	  "error":{
+	//{
+	//	"log.level":"info",
+	//	"@timestamp":1584716847523456,
+	//	"log.logger":"mylogger",
+	//	"log.origin":{
+	//		"file.name":"main/main.go",
+	//		"file.line":265
+	//	},
+	//	"message":"some logging info",
+	//	"ecs.version":"1.5.0",
+	//	"custom":"foo",
+	//	"count":17,
+	//	"error":{
 	//		"message":"boom"
-	//	  }
 	//	}
+	//}
 
 	// Log a wrapped error
 	err := errors.New("boom")
-	logger.Error("some error", zap.Error(errs.Wrap(err, "crash")))
+	logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
 	// Log Output:
-	//	{
-	//	  "log.level":"error",
-	//	  "@timestamp":1584029304244786,
-	//	  "message":"some error",
-	//	  "log.logger":"mylogger",
-	//	  "log.origin":{
-	//	    "file.name":"example/example.go",
-	//	    "file.line":54
-	//    },
-	//	  "ecs.version":"1.5.0",
-	//	  "custom":"foo",
-	//	  "error":{
-	//	    "message":"crash: boom",
-	//	    "stacktrace": "\nexample.example\n\t/Users/xyz/example/example.go:50\nruntime.example\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/proc.go:203\nruntime.goexit\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/asm_amd64.s:1357"
-	//    }
+	//{
+	//	"log.level":"error",
+	//	"@timestamp":1584716847523842,
+	//	"log.logger":"mylogger",
+	//	"log.origin":{
+	//		"file.name":"main/main.go",
+	//		"file.line":290
+	//	},
+	//	"message":"some error",
+	//	"ecs.version":"1.5.0",
+	//	"custom":"foo",
+	//	"error":{
+	//		"message":"crash: boom",
+	//		"stacktrace": "\nexample.example\n\t/Users/xyz/example/example.go:50\nruntime.example\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/proc.go:203\nruntime.goexit\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/asm_amd64.s:1357"
 	//	}
+	//}
 
 	// Use sugar logger with key-value pairs
 	sugar := logger.Sugar()
@@ -98,43 +98,43 @@ func main() {
 		"count", 17,
 	)
 	// Log Output:
-	//	{
-	//	  "log.level":"info",
-	//	  "@timestamp":1584029304244835,
-	//	  "message":"some logging info",
-	//	  "log.logger":"mylogger",
-	//	  "log.origin":{
-	//	    "file.name":"example/example.go",
-	//	    "file.line":54
-	//    },
-	//	  "ecs.version":"1.5.0",
-	//	  "custom":"foo",
-	//	  "foo":"bar",
-	//	  "count":17
-	//	}
+	//{
+	//	"log.level":"info",
+	//	"@timestamp":1584716847523941,
+	//	"log.logger":"mylogger",
+	//	"log.origin":{
+	//		"file.name":"main/main.go",
+	//		"file.line":311
+	//	},
+	//	"message":"some logging info",
+	//	"ecs.version":"1.5.0",
+	//	"custom":"foo",
+	//	"foo":"bar",
+	//	"count":17
+	//}
 
 	// Advanced use case: wrap a custom core with ecszap core
 	// create your own non-ECS core using a ecszap JSONEncoder
 	encoder := ecszap.NewJSONEncoder(ecszap.NewDefaultEncoderConfig())
-	core := zapcore.NewCore(encoder, os.Stdout, zap.DebugLevel)
+	core = zapcore.NewCore(encoder, os.Stdout, zap.DebugLevel)
 	// wrap your own core with the ecszap core
-	logger := zap.New(ecszap.WrapCore(core), zap.AddCaller())
+	logger = zap.New(ecszap.WrapCore(core), zap.AddCaller())
 	defer logger.Sync()
 	logger.With(zap.Error(errors.New("wrapCore"))).Error("boom")
 	// Log Output:
-	//	{
-	//	  "log.level":"error",
-	//	  "@timestamp":1584700435844132,
-	//	  "log.origin":{
-	//	    "file.name":"main/main.go",
-	//	    "file.line":221
-	//	  },
-	//	  "message":"boom",
-	//	  "ecs.version":"1.5.0",
-	//	  "error":{
-	//	    "message":"wrapCore"
-	//	  }
-	//  }
+	//{
+	//	"log.level":"error",
+	//	"@timestamp":1584716847524082,
+	//	"log.origin":{
+	//		"file.name":"main/main.go",
+	//		"file.line":338
+	//	},
+	//	"message":"boom",
+	//	"ecs.version":"1.5.0",
+	//	"error":{
+	//		"message":"wrapCore"
+	//	}
+	//}
 }
 ```
 

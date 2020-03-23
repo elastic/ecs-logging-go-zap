@@ -23,7 +23,7 @@ import (
 	"runtime"
 	"testing"
 
-	errs "github.com/pkg/errors"
+	pkgerrors "github.com/pkg/errors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -79,7 +79,7 @@ func BenchmarkCore(b *testing.B) {
 
 		b.Run(name+"/errors", func(b *testing.B) {
 			err1 := errors.New("boom")
-			err2 := errs.Wrap(err1, "crash")
+			err2 := pkgerrors.Wrap(err1, "crash")
 			err3 := testErr{msg: "boom/crash", errors: []error{err1, err2}}
 			fieldsWithErr := append(fields,
 				zap.Error(err1),

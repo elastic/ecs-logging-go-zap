@@ -27,6 +27,7 @@ import (
 	errs "github.com/pkg/errors"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
 
@@ -41,9 +42,9 @@ func (tw *testOutput) Write(p []byte) (int, error) {
 
 func (tw *testOutput) Sync() error { return nil }
 
-func (tw *testOutput) assertContains(t *testing.T, keys []string) {
+func (tw *testOutput) requireContains(t *testing.T, keys []string) {
 	for _, s := range keys {
-		assert.Contains(t, tw.m, s)
+		require.Contains(t, tw.m, s)
 	}
 }
 
@@ -59,14 +60,14 @@ func TestECSZapLogger_With(t *testing.T) {
 
 	// strongly typed fields
 	logger.Info("testlog", zap.String("foo", "bar"))
-	out.assertContains(t, []string{"ecs.version", "message",
+	out.requireContains(t, []string{"ecs.version", "message",
 		"@timestamp", "log.level", "log.origin", "foo"})
 
 	// log a wrapped error
 	out.reset()
 	err := errors.New("boom")
 	logger.Error("some error", zap.Error(errs.Wrap(err, "crash")))
-	out.assertContains(t, []string{"error"})
+	out.requireContains(t, []string{"error"})
 
 	// Adding logger wide fields and a logger name
 	out.reset()
@@ -74,7 +75,7 @@ func TestECSZapLogger_With(t *testing.T) {
 	logger = logger.With(zap.Error(errors.New("wrapCore Error")))
 	logger = logger.Named("mylogger")
 	logger.Debug("debug message")
-	out.assertContains(t, []string{"log.logger", "foo", "error"})
+	out.requireContains(t, []string{"log.logger", "foo", "error"})
 
 	// Use loosely typed logger
 	out.reset()
@@ -83,7 +84,7 @@ func TestECSZapLogger_With(t *testing.T) {
 		"foo", "bar",
 		"count", 17,
 	)
-	out.assertContains(t, []string{"ecs.version", "message",
+	out.requireContains(t, []string{"ecs.version", "message",
 		"@timestamp", "log.level", "log.origin", "foo", "count"})
 
 	// Wrapped logger
@@ -93,8 +94,9 @@ func TestECSZapLogger_With(t *testing.T) {
 	logger = zap.New(WrapCore(core), zap.AddCaller())
 	defer logger.Sync()
 	logger.With(zap.Error(errors.New("wrapCore"))).Error("boom")
-	out.assertContains(t, []string{"error", "message"})
+	out.requireContains(t, []string{"error", "message"})
 	assert.Equal(t, "boom", out.m["message"])
-	assert.Equal(t, map[string]interface{}{"message": "wrapCore"},
-		out.m["error"].(map[string]interface{}))
+	outErr, ok := out.m["error"].(map[string]interface{})
+	require.True(t, ok, out.m["error"])
+	assert.Equal(t, map[string]interface{}{"message": "wrapCore"}, outErr)
 }
