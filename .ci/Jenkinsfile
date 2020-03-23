@@ -51,10 +51,17 @@ pipeline {
     stage('Test') {
       options { skipDefaultCheckout() }
       steps {
-        deleteDir()
-        unstash 'source'
-        dir("${BASE_DIR}"){
-          sh script: '.ci/scripts/run-tests.sh', label: 'Run tests'
+        withGithubNotify(context: 'Test', tab: 'tests') {
+          deleteDir()
+          unstash 'source'
+          dir("${BASE_DIR}"){
+            sh script: '.ci/scripts/run-tests.sh', label: 'Run tests'
+          }
+        }
+      }
+      post {
+        always {
+          junit(allowEmptyResults: true, keepLongStdio: true, testResults: "${BASE_DIR}/junit-*.xml")
         }
       }
     }
