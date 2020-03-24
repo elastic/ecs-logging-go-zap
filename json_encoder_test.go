@@ -101,7 +101,7 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 					"count": 8,
 					"service.name": "serviceA",
 					"service.version":"2.1.3"
-				}`, tc.expected, Version)
+				}`, tc.expected, ECSVersion)
 
 			//parse config and encode
 			cfg := tc.cfg

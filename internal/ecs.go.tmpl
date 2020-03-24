@@ -11,8 +11,8 @@ import (
         "go.uber.org/zap/zapcore"
 )
 
-// Version is the current ECS version available in the ecs package.
-const Version = "{{ .schema.Version }}"
+// ECSVersion is the current ECS version available in the ecs package.
+const ECSVersion = "{{ .schema.Version }}"
 
 const (
 {{ range $ns := .schema.Namespaces }}

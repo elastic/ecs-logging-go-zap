@@ -104,7 +104,7 @@ type jsonEncoder struct {
 // The ECSJSONEncoder uses zap.JSONEncoder internally.
 func NewJSONEncoder(encCfg EncoderConfig) zapcore.Encoder {
 	enc := jsonEncoder{zapcore.NewJSONEncoder(encCfg.convertToZapCoreEncoderConfig())}
-	enc.AddString("ecs.version", Version)
+	enc.AddString("ecs.version", ECSVersion)
 	return &enc
 }
 

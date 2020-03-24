@@ -94,7 +94,7 @@ func updateECS() error {
 		"-out", "ecs.go",
 		"-version", strings.TrimRight(string(b), "\n"),
 		"-pkg", "ecszap",
-		"-template", filepath.Join("internal", "template"),
+		"-template", filepath.Join("internal", "ecs.go.tmpl"),
 		filepath.Join(ecsDir, "generated", "ecs", "ecs_flat.yml"))
 	fmt.Println(cmd.String())
 	return cmd.Run()
