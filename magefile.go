@@ -38,64 +38,82 @@ func Update() error {
 	mg.Deps(InstallDeps)
 	fmt.Println("Updating...")
 
-	if err := updateECS(); err != nil {
+	if err := generateECS(); err != nil {
 		return err
 	}
-	for _, cmd := range []*exec.Cmd{
+	return runCmds([]*exec.Cmd{
 		exec.Command("go-licenser", "."),
 		exec.Command("go", "fmt"),
 		exec.Command("go", "mod", "tidy"),
-	} {
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-	}
-	return nil
+	})
 }
 
 // Install development dependencies
 func InstallDeps() error {
 	fmt.Println("Installing Deps...")
-	for _, cmd := range []*exec.Cmd{
+	return runCmds([]*exec.Cmd{
 		exec.Command("go", "get", "github.com/elastic/go-licenser"),
 		exec.Command("go", "get", "github.com/urso/go-ecsfieldgen"),
-	} {
+	})
+}
+
+// generateECS file from template and given ECS version
+func generateECS() error {
+	fmt.Println("Generate ECS information...")
+	var ecsVersion = os.Getenv("ECS_VERSION")
+	if ecsVersion == "" {
+		return errors.New("ECS_VERSION must be specified")
+	}
+	tmpDir := filepath.Join("internal", "tmp")
+	tmpECSDir := filepath.Join(tmpDir, "ecs")
+	if err := runCmds([]*exec.Cmd{
+		exec.Command("rm", "-rf", tmpECSDir),
+		exec.Command("mkdir", "-p", tmpDir),
+		exec.Command("git", "clone", "https://github.com/elastic/ecs",
+			"-b", ecsVersion, tmpECSDir),
+	}); err != nil {
+		return err
+	}
+	b, err := ioutil.ReadFile(filepath.Join(tmpECSDir, "version"))
+	if err != nil {
+		return err
+	}
+	version := strings.TrimRight(string(b), "\n")
+	schema := filepath.Join(tmpECSDir, "generated", "ecs", "ecs_flat.yml")
+	return runCmds([]*exec.Cmd{
+		generateECSVersion(version, schema),
+		generateECSTypes(version, schema),
+		exec.Command("go", "fmt", "./..."),
+		exec.Command("rm", "-rf", tmpECSDir),
+	})
+}
+
+func generateECSVersion(version string, schema string) *exec.Cmd {
+	return exec.Command("go-ecsfieldgen",
+		"-out", "version.go",
+		"-version", version,
+		"-pkg", "ecszap",
+		"-template", filepath.Join("internal", "version.go.tmpl"),
+		schema,
+	)
+}
+
+func generateECSTypes(version string, schema string) *exec.Cmd {
+	return exec.Command("go-ecsfieldgen",
+		"-out", filepath.Join("ecs", "ecs.go"),
+		"-version", version,
+		"-pkg", "ecs",
+		"-template", filepath.Join("internal", "ecs.go.tmpl"),
+		schema,
+	)
+}
+
+func runCmds(cmds []*exec.Cmd) error {
+	for _, cmd := range cmds {
 		if err := cmd.Run(); err != nil {
+			fmt.Println(fmt.Sprintf("%s: %+w", cmd.String(), err))
 			return err
 		}
 	}
 	return nil
-}
-
-// updateECS file from template and given ECS version
-func updateECS() error {
-	fmt.Println("Update ECS Types...")
-	var ecsBranch = os.Getenv("ECS_BRANCH")
-	if ecsBranch == "" {
-		return errors.New("ECS_BRANCH must be specified")
-	}
-	tmpDir := filepath.Join("internal", "tmp")
-	ecsDir := filepath.Join(tmpDir, "ecs")
-	for _, cmd := range []*exec.Cmd{
-		exec.Command("rm", "-rf", ecsDir),
-		exec.Command("mkdir", "-p", tmpDir),
-		exec.Command("git", "clone", "https://github.com/elastic/ecs",
-			"-b", ecsBranch, ecsDir),
-	} {
-		if err := cmd.Run(); err != nil {
-			return err
-		}
-	}
-	b, err := ioutil.ReadFile(filepath.Join(ecsDir, "version"))
-	if err != nil {
-		return err
-	}
-	cmd := exec.Command("go-ecsfieldgen",
-		"-out", "ecs.go",
-		"-version", strings.TrimRight(string(b), "\n"),
-		"-pkg", "ecszap",
-		"-template", filepath.Join("internal", "ecs.go.tmpl"),
-		filepath.Join(ecsDir, "generated", "ecs", "ecs_flat.yml"))
-	fmt.Println(cmd.String())
-	return cmd.Run()
 }

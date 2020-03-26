@@ -53,9 +53,9 @@ func main() {
 
 	// Add additional global ECS fields to logger
 	logger = logger.With(
-		ecszap.Service.Name("serviceA"),
-		ecszap.Service.Version("2.1.3"),
-		ecszap.Process.PID(int64(os.Getpid())))
+		ecs.Field.Service.Name("serviceA"),
+		ecs.Field.Service.Version("2.1.3"),
+		ecs.Field.Process.PID(int64(os.Getpid())))
 
 	// Use strongly typed Field values
 	logger.Info("some logging info",
@@ -170,7 +170,7 @@ go test ./...
 ## Contribute
 Create a Pull Request from your own fork. 
 
-Run `ECS_BRANCH=version mage update` to update to the required ECS version and format you changes before submitting.
+Run `ECS_VERSION=version mage update` to update to the required ECS version and format you changes before submitting.
 
 Add new dependencies to the NOTICE.txt.
 

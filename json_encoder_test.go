@@ -27,6 +27,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/elastic/ecs-logging-go-zap/ecs"
 )
 
 func TestJSONEncoder_EncodeEntry(t *testing.T) {
@@ -88,8 +90,9 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 			fields := []zapcore.Field{
 				zap.String("foo", "bar"),
 				zap.Int("count", 8),
-				Service.Name("serviceA"),
-				Service.Version("2.1.3"),
+				ecs.Field.Service.Name("serviceA"),
+				ecs.Field.Service.Version("2.1.3"),
+				ecs.Field.Service.Node.Name("mynode"),
 			}
 			expected := fmt.Sprintf(`{
 					%v
@@ -100,7 +103,8 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 					"foo": "bar",
 					"count": 8,
 					"service.name": "serviceA",
-					"service.version":"2.1.3"
+					"service.version":"2.1.3",
+					"service.node.name": "mynode"
 				}`, tc.expected, ECSVersion)
 
 			//parse config and encode

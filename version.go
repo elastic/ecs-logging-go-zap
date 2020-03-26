@@ -17,7 +17,8 @@
 
 package ecszap
 
-const (
-	// Version is the ecszap module version.
-	Version = "0.1.0"
-)
+// Do not manually change this file, as it is generated.
+// If you want to update the file, run `make update-ecs`
+
+// ECSVersion is the current ECS version available in the ecs package.
+const ECSVersion = "1.5.0"

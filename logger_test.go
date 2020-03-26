@@ -29,6 +29,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
+
+	"github.com/elastic/ecs-logging-go-zap/ecs"
 )
 
 type testOutput struct {
@@ -74,11 +76,11 @@ func TestECSZapLogger_With(t *testing.T) {
 	logger = logger.With(
 		zap.String("foo", "bar"),
 		zap.Error(errors.New("wrapCore Error")),
-		Service.Name("serviceA"),
-		Service.Version("2.0.3"))
+		ecs.Field.Agent.Name("agent-java"),
+		ecs.Field.Agent.Version("2.0.3"))
 	logger = logger.Named("mylogger")
 	logger.Debug("debug message")
-	out.requireContains(t, []string{"log.logger", "foo", "error", "service.name", "service.version"})
+	out.requireContains(t, []string{"log.logger", "foo", "error", "agent.name", "agent.version"})
 
 	// Use loosely typed logger
 	out.reset()

@@ -102,8 +102,8 @@ type jsonEncoder struct {
 // NewJSONEncoder creates a JSON encoder, populating a minimal set of
 // Elastic common schema (ECS) values.
 // The ECSJSONEncoder uses zap.JSONEncoder internally.
-func NewJSONEncoder(encCfg EncoderConfig) zapcore.Encoder {
-	enc := jsonEncoder{zapcore.NewJSONEncoder(encCfg.convertToZapCoreEncoderConfig())}
+func NewJSONEncoder(cfg EncoderConfig) zapcore.Encoder {
+	enc := jsonEncoder{zapcore.NewJSONEncoder(cfg.convertToZapCoreEncoderConfig())}
 	enc.AddString("ecs.version", ECSVersion)
 	return &enc
 }
