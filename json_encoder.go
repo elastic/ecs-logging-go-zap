@@ -19,8 +19,6 @@ package ecszap
 
 import (
 	"go.uber.org/zap/zapcore"
-
-	"github.com/elastic/ecs-logging-go-zap/internal"
 )
 
 const version = "1.5.0"
@@ -30,7 +28,7 @@ var (
 	defaultEncodeName     = zapcore.FullNameEncoder
 	defaultEncodeLevel    = zapcore.LowercaseLevelEncoder
 	defaultEncodeDuration = zapcore.NanosDurationEncoder
-	defaultEncodeCaller   = internal.ShortCallerEncoder
+	defaultEncodeCaller   = ShortCallerEncoder
 )
 
 // EncoderConfig allows customization of None-ECS settings.
@@ -48,22 +46,22 @@ type EncoderConfig struct {
 	// If enabled, the EncodeCaller configuration is used for serialization.
 	EnableCaller bool `json:"enableCaller" yaml:"enableCaller"`
 
-	// LineEnding defines the string used for line endings
+	// LineEnding defines the string used for line endings.
 	LineEnding string `json:"lineEnding" yaml:"lineEnding"`
 
-	// EncodeName defines how to encode a loggers name;
-	// will only be applied if EnableName is set to true
+	// EncodeName defines how to encode a loggers name.
+	// It will only be applied if EnableName is set to true.
 	EncodeName zapcore.NameEncoder `json:"nameEncoder" yaml:"nameEncoder"`
 
-	// EncodeLevel sets the log level for which context should be logged
+	// EncodeLevel sets the log level for which any context should be logged.
 	EncodeLevel zapcore.LevelEncoder `json:"levelEncoder" yaml:"levelEncoder"`
 
-	// EncodeDuration sets the format for encoding time.Duration values
+	// EncodeDuration sets the format for encoding time.Duration values.
 	EncodeDuration zapcore.DurationEncoder `json:"durationEncoder" yaml:"durationEncoder"`
 
-	// EncodeCaller defines how an entry caller should be serialized;
-	// will only be applied if EnableCaller is set to true.
-	EncodeCaller internal.CallerEncoder `json:"callerEncoder" yaml:"callerEncoder"`
+	// EncodeCaller defines how an entry caller should be serialized.
+	// It will only be applied if EnableCaller is set to true.
+	EncodeCaller CallerEncoder `json:"callerEncoder" yaml:"callerEncoder"`
 }
 
 // NewDefaultEncoderConfig returns EncoderConfig with default settings.
@@ -86,7 +84,7 @@ func (ec EncoderConfig) convertToZapCoreEncoderConfig() zapcore.EncoderConfig {
 		LevelKey:       "log.level",
 		TimeKey:        "@timestamp",
 		LineEnding:     ec.LineEnding,
-		EncodeTime:     internal.EpochMicrosTimeEncoder,
+		EncodeTime:     EpochMicrosTimeEncoder,
 		EncodeDuration: ec.EncodeDuration,
 		EncodeName:     ec.EncodeName,
 		EncodeCaller:   zapcore.CallerEncoder(ec.EncodeCaller),
@@ -120,9 +118,8 @@ type jsonEncoder struct {
 	zapcore.Encoder
 }
 
-// NewJSONEncoder creates a JSON encoder, populating a minimal set of
-// Elastic common schema (ECS) values.
-// The ECS JSONEncoder uses zap.JSONEncoder internally.
+// NewJSONEncoder creates a JSON encoder, populating a minimal
+// set of Elastic common schema (ECS) fields.
 func NewJSONEncoder(cfg EncoderConfig) zapcore.Encoder {
 	enc := jsonEncoder{zapcore.NewJSONEncoder(cfg.convertToZapCoreEncoderConfig())}
 	enc.AddString("ecs.version", version)

@@ -8,7 +8,7 @@ Use this library for automatically adding a minimal set of ECS fields to your lo
 
 ---
  
-The encoder logs in JSON format, using the default [zapcore/json_encoder](https://github.com/uber-go/zap/blob/master/zapcore/json_encoder.go) internally. 
+The encoder logs in JSON format, relying on the default [zapcore/json_encoder](https://github.com/uber-go/zap/blob/master/zapcore/json_encoder.go) when possible. 
 
 Following fields will be added by default:
 ```

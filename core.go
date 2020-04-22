@@ -24,8 +24,6 @@ import (
 )
 
 // NewCore creates a zapcore.Core that uses an ECS conformant JSON encoder.
-// Internally it makes use of zapcore.Core functionality,
-// and only implements dedicated parts required to be aligned with ECS.
 func NewCore(cfg EncoderConfig, ws zapcore.WriteSyncer, enab zapcore.LevelEnabler) zapcore.Core {
 	return WrapCore(zapcore.NewCore(NewJSONEncoder(cfg), ws, enab))
 }
@@ -40,7 +38,7 @@ type core struct {
 }
 
 // With converts error fields into ECS compliant errors
-// and calls the internal zapcore.Core for adding structured context.
+// before adding them to the logger.
 func (c core) With(fields []zapcore.Field) zapcore.Core {
 	convertToECSFields(fields)
 	return &core{c.Core.With(fields)}
@@ -57,7 +55,7 @@ func (c core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.Checke
 }
 
 // Write converts error fields into ECS compliant errors
-// and calls the internal zapcore.Core for serializing the entry and fields.
+// before serializing the entry and fields.
 func (c core) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 	convertToECSFields(fields)
 	return c.Core.Write(ent, fields)

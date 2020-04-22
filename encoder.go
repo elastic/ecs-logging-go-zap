@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package internal
+package ecszap
 
 import (
 	"strings"
@@ -24,31 +24,15 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// EpochMicrosTimeEncoder encodes a given time in microseconds.
 func EpochMicrosTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	micros := float64(t.UnixNano()) / float64(time.Microsecond)
 	enc.AppendFloat64(micros)
 }
 
-type caller struct {
-	zapcore.EntryCaller
-	fullPath bool
-}
-
-func (c *caller) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	var file string
-	if c.fullPath {
-		file = c.File
-	} else {
-		file = c.TrimmedPath()
-		file = file[:strings.LastIndex(file, ":")]
-	}
-	enc.AddString("file.name", file)
-	enc.AddInt("file.line", c.Line)
-	return nil
-}
-
-// CallerEncoder adheres to zapcore.CallerEncoder format but gives use the
-// flexibility to implement a dedicated UnmarshalText method on the encoder
+// CallerEncoder is equivalent to zapcore.CallerEncoder, except that its UnmarshalText
+// method uses FullCallerEncoder and ShortCallerEncoder from this package instead,
+// in order to encode callers in the ECS format.
 type CallerEncoder func(zapcore.EntryCaller, zapcore.PrimitiveArrayEncoder)
 
 // FullCallerEncoder serializes the file name and line from the caller
@@ -84,4 +68,22 @@ func encodeCaller(c *caller, enc zapcore.PrimitiveArrayEncoder) {
 	if e, ok := enc.(zapcore.ArrayEncoder); ok {
 		e.AppendObject(c)
 	}
+}
+
+type caller struct {
+	zapcore.EntryCaller
+	fullPath bool
+}
+
+func (c *caller) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	var file string
+	if c.fullPath {
+		file = c.File
+	} else {
+		file = c.TrimmedPath()
+		file = file[:strings.LastIndex(file, ":")]
+	}
+	enc.AddString("file.name", file)
+	enc.AddInt("file.line", c.Line)
+	return nil
 }
