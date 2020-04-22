@@ -1,6 +1,14 @@
 # Elastic Common Schema (ECS) support for uber-go/zap logger
 
-Use this encoder for automatically adding a minimal set of ECS fields to your logs, when using [uber-go/zap](https://github.com/uber-go/zap). The encoder logs in JSON format, using the default [zapcore/json_encoder](https://github.com/uber-go/zap/blob/master/zapcore/json_encoder.go) internally. 
+Use this encoder for automatically adding a minimal set of ECS fields to your logs, when using [uber-go/zap](https://github.com/uber-go/zap).
+ 
+---
+
+**Please note** that this library is in a **beta** version and backwards-incompatible changes might be introduced in future releases. While we strive to comply to [semver](https://semver.org/), we can not guarantee to avoid breaking changes in minor releases.
+
+---
+ 
+The encoder logs in JSON format, using the default [zapcore/json_encoder](https://github.com/uber-go/zap/blob/master/zapcore/json_encoder.go) internally. 
 
 Following fields will be added by default:
 ```
@@ -11,6 +19,7 @@ Following fields will be added by default:
     "ecs.version":"1.5.0"
 }
 ```
+
 
 ## What is ECS?
 
