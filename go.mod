@@ -1,4 +1,4 @@
-module github.com/elastic/ecs-logging-go-zap
+module go.elastic.co/ecszap
 
 require (
 	github.com/magefile/mage v1.9.0
