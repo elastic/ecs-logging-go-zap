@@ -18,5 +18,5 @@
 // Package ecszap provides a formatter to be used
 // with the go.uber.org/zap logger library
 // that helps creating Elastic Common Schema (ECS)
-// conform log entries.
+// conformant log entries.
 package ecszap // import "go.elastic.co/ecszap"
