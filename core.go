@@ -23,9 +23,9 @@ import (
 	"github.com/elastic/ecs-logging-go-zap/internal"
 )
 
-// NewCore creates a zapcore.Core that uses an ECS conform JSON Encoder internally.
-// It largely falls back to zapcore.Core functionality,
-// but implements dedicated parts required to be aligned with ECS.
+// NewCore creates a zapcore.Core that uses an ECS conform JSON Encoder.
+// Internally it makes use of zapcore.Core functionality,
+// and only implements dedicated parts required to be aligned with ECS.
 func NewCore(cfg EncoderConfig, ws zapcore.WriteSyncer, enab zapcore.LevelEnabler) zapcore.Core {
 	return WrapCore(zapcore.NewCore(NewJSONEncoder(cfg), ws, enab))
 }
@@ -39,11 +39,16 @@ type core struct {
 	zapcore.Core
 }
 
+// With converts error fields into ECS compliant errors
+// and calls the internally hold zapcore.Core for adding structured context.
 func (c core) With(fields []zapcore.Field) zapcore.Core {
 	convertToECSFields(fields)
 	return &core{c.Core.With(fields)}
 }
 
+// Check verifies whether or not the provided entry should be logged,
+// by comparing the log level with the configured log level in the core.
+// If it should be logged the core is added to the returned entry.
 func (c core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.CheckedEntry {
 	if c.Enabled(ent.Level) {
 		return ce.AddCore(ent, c)
@@ -51,6 +56,8 @@ func (c core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.Checke
 	return ce
 }
 
+// Write converts error fields into ECS compliant errors
+// and calls the internally hold zapcore.Core for serializing the entry and fields.
 func (c core) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 	convertToECSFields(fields)
 	return c.Core.Write(ent, fields)

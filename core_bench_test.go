@@ -30,12 +30,10 @@ import (
 
 func BenchmarkCore(b *testing.B) {
 	fields := []zapcore.Field{
-		zap.String("str", "foo"),
-		zap.Int64("int64-1", 1),
-		zap.Int64("int64-2", 2),
+		zap.String("string", "foo"),
+		zap.Int64("int64", 1),
+		zap.Int("int", 2),
 		zap.Float64("float64", 1.0),
-		zap.String("string1", "\n"),
-		zap.String("string2", "🙊"),
 		zap.Bool("bool", true),
 	}
 	cores := map[string]func(ws zapcore.WriteSyncer) zapcore.Core{

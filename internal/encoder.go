@@ -47,6 +47,8 @@ func (c *caller) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return nil
 }
 
+// CallerEncoder adheres to zapcore.CallerEncoder format but gives use the
+// flexibility to implement a dedicated UnmarshalText method on the encoder
 type CallerEncoder func(zapcore.EntryCaller, zapcore.PrimitiveArrayEncoder)
 
 // FullCallerEncoder serializes the file name and line from the caller
