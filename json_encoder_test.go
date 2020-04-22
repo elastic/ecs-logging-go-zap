@@ -108,12 +108,14 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 				zap.String("foo", "bar"),
 				zap.Int("count", 8),
 			}
-			//parse config and encode
+			//parse config and create encoder from it
 			cfg := tc.cfg
 			if tc.input != "" {
 				require.NoError(t, json.Unmarshal([]byte(tc.input), &cfg))
 			}
 			enc := NewJSONEncoder(cfg).(*jsonEncoder)
+
+			//encode entry and ensure JSONEncoder configurations are properly applied
 			buf, err := enc.EncodeEntry(entry, fields)
 			require.NoError(t, err)
 			out := buf.String()
