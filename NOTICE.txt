@@ -1,8 +1,8 @@
-ecs-logging-go-zap
+ecszap
 Copyright 2020-2020 Elasticsearch B.V.
 
 ==========================================================================
-Third party libraries used by the Elastic ecs-logging-go-zap project:
+Third party libraries used by the Elastic ecszap project:
 ==========================================================================
 
 Dependency: github.com/stretchr/testify

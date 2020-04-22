@@ -29,7 +29,7 @@ import (
 )
 
 func TestJSONEncoder_EncodeEntry(t *testing.T) {
-	path := "/Home/foo/coding/ecs-logging-go-zap/json_encoder_test.go"
+	path := "/Home/foo/coding/ecszap/json_encoder_test.go"
 	caller := zapcore.NewEntryCaller(0, path, 30, true)
 	for _, tc := range []struct {
 		name     string
@@ -45,7 +45,7 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 						"ecs.version": "1.5.0",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecs-logging-go-zap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go"
 						},
 						"log.origin.stacktrace": "stacktrace frames",
 						"log.logger": "ECS",
@@ -87,7 +87,7 @@ func TestJSONEncoder_EncodeEntry(t *testing.T) {
 						"ecs.version": "1.5.0",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecs-logging-go-zap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go"
 						},
 						"log.origin.stacktrace": "stacktrace frames",
 						"log.logger": "ECS",

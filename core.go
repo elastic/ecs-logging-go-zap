@@ -20,7 +20,7 @@ package ecszap
 import (
 	"go.uber.org/zap/zapcore"
 
-	"github.com/elastic/ecs-logging-go-zap/internal"
+	"go.elastic.co/ecszap/internal"
 )
 
 // NewCore creates a zapcore.Core that uses an ECS conformant JSON encoder.

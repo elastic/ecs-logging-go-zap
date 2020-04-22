@@ -30,7 +30,7 @@ For more information about ECS, visit the [ECS Reference Documentation](https://
 ## Installation
 Add the package to your `go.mod` file
 ```
-require github.com/elastic/ecs-logging-go-zap master
+require go.elastic.co/ecszap master
 ```
 
 ## Example usage
@@ -43,7 +43,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	ecszap "github.com/elastic/ecs-logging-go-zap"
+	"go.elastic.co/ecszap"
 )
 
 func main() {
