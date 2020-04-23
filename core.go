@@ -18,17 +18,25 @@
 package ecszap
 
 import (
+	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"go.elastic.co/ecszap/internal"
 )
 
+const version = "1.5.0"
+
 // NewCore creates a zapcore.Core that uses an ECS conformant JSON encoder.
+// This is the safest way to create an ECS compatible core.
 func NewCore(cfg EncoderConfig, ws zapcore.WriteSyncer, enab zapcore.LevelEnabler) zapcore.Core {
-	return WrapCore(zapcore.NewCore(NewJSONEncoder(cfg), ws, enab))
+	enc := zapcore.NewJSONEncoder(toZapCoreEncoderConfig(cfg))
+	return WrapCore(zapcore.NewCore(enc, ws, enab))
 }
 
-// WrapCore wraps a given core with the ecszap.core functionality
+// WrapCore wraps a given core with ECS core functionality. For ECS
+// compatibility, ensure that the wrapped zapcore.Core uses an encoder
+// that is created from an ECS compatible configuration. For further details
+// check out ecszap.EncoderConfig or ecszap.ECSCompatibleEncoderConfig.
 func WrapCore(c zapcore.Core) zapcore.Core {
 	return &core{c}
 }
@@ -58,6 +66,7 @@ func (c core) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapcore.Checke
 // before serializing the entry and fields.
 func (c core) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 	convertToECSFields(fields)
+	fields = append(fields, zap.String("ecs.version", version))
 	return c.Core.Write(ent, fields)
 }
 

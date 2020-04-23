@@ -17,102 +17,7 @@
 
 package ecszap
 
-import (
-	"go.uber.org/zap/zapcore"
-)
-
-const version = "1.5.0"
-
-var (
-	defaultLineEnding     = zapcore.DefaultLineEnding
-	defaultEncodeName     = zapcore.FullNameEncoder
-	defaultEncodeLevel    = zapcore.LowercaseLevelEncoder
-	defaultEncodeDuration = zapcore.NanosDurationEncoder
-	defaultEncodeCaller   = ShortCallerEncoder
-)
-
-// EncoderConfig allows customization of None-ECS settings.
-type EncoderConfig struct {
-
-	// EnableName controls if a logger's name should be serialized
-	// when available. If enabled, the EncodeName configuration is
-	// used for serialization.
-	EnableName bool `json:"enableName" yaml:"enableName"`
-
-	// EnableStacktrace controls if a stacktrace should be serialized when available.
-	EnableStacktrace bool `json:"enableStacktrace" yaml:"enableStacktrace"`
-
-	// EnableCaller controls if the entry caller should be serialized.
-	// If enabled, the EncodeCaller configuration is used for serialization.
-	EnableCaller bool `json:"enableCaller" yaml:"enableCaller"`
-
-	// LineEnding defines the string used for line endings.
-	LineEnding string `json:"lineEnding" yaml:"lineEnding"`
-
-	// EncodeName defines how to encode a loggers name.
-	// It will only be applied if EnableName is set to true.
-	EncodeName zapcore.NameEncoder `json:"nameEncoder" yaml:"nameEncoder"`
-
-	// EncodeLevel sets the log level for which any context should be logged.
-	EncodeLevel zapcore.LevelEncoder `json:"levelEncoder" yaml:"levelEncoder"`
-
-	// EncodeDuration sets the format for encoding time.Duration values.
-	EncodeDuration zapcore.DurationEncoder `json:"durationEncoder" yaml:"durationEncoder"`
-
-	// EncodeCaller defines how an entry caller should be serialized.
-	// It will only be applied if EnableCaller is set to true.
-	EncodeCaller CallerEncoder `json:"callerEncoder" yaml:"callerEncoder"`
-}
-
-// NewDefaultEncoderConfig returns EncoderConfig with default settings.
-func NewDefaultEncoderConfig() EncoderConfig {
-	return EncoderConfig{
-		EnableName:       true,
-		EnableCaller:     true,
-		EnableStacktrace: true,
-		LineEnding:       defaultLineEnding,
-		EncodeName:       defaultEncodeName,
-		EncodeLevel:      defaultEncodeLevel,
-		EncodeDuration:   defaultEncodeDuration,
-		EncodeCaller:     defaultEncodeCaller,
-	}
-}
-
-func (ec EncoderConfig) convertToZapCoreEncoderConfig() zapcore.EncoderConfig {
-	cfg := zapcore.EncoderConfig{
-		MessageKey:     "message",
-		LevelKey:       "log.level",
-		TimeKey:        "@timestamp",
-		LineEnding:     ec.LineEnding,
-		EncodeTime:     EpochMicrosTimeEncoder,
-		EncodeDuration: ec.EncodeDuration,
-		EncodeName:     ec.EncodeName,
-		EncodeCaller:   zapcore.CallerEncoder(ec.EncodeCaller),
-		EncodeLevel:    ec.EncodeLevel,
-	}
-	if cfg.EncodeDuration == nil {
-		ec.EncodeDuration = defaultEncodeDuration
-	}
-	if ec.EnableName {
-		cfg.NameKey = "log.logger"
-		if cfg.EncodeName == nil {
-			ec.EncodeName = defaultEncodeName
-		}
-	}
-	if ec.EnableStacktrace {
-		cfg.StacktraceKey = "log.origin.stacktrace"
-	}
-	if ec.EnableCaller {
-		cfg.CallerKey = "log.origin"
-		if cfg.EncodeCaller == nil {
-			cfg.EncodeCaller = defaultEncodeCaller
-		}
-	}
-	if cfg.EncodeLevel == nil {
-		cfg.EncodeLevel = defaultEncodeLevel
-	}
-	return cfg
-}
+import "go.uber.org/zap/zapcore"
 
 type jsonEncoder struct {
 	zapcore.Encoder
@@ -121,7 +26,7 @@ type jsonEncoder struct {
 // NewJSONEncoder creates a JSON encoder, populating a minimal
 // set of Elastic common schema (ECS) fields.
 func NewJSONEncoder(cfg EncoderConfig) zapcore.Encoder {
-	enc := jsonEncoder{zapcore.NewJSONEncoder(cfg.convertToZapCoreEncoderConfig())}
+	enc := jsonEncoder{zapcore.NewJSONEncoder(toZapCoreEncoderConfig(cfg))}
 	enc.AddString("ecs.version", version)
 	return &enc
 }

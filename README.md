@@ -35,6 +35,7 @@ require go.elastic.co/ecszap master
 
 ## Example usage
 ```
+
 import (
 	"errors"
 	"os"
@@ -123,17 +124,20 @@ func main() {
 	//	"count":17
 	//}
 
-	// Advanced use case: wrap a custom core with ecszap core
-	// create your own non-ECS core using a ecszap JSONEncoder
-	encoder := ecszap.NewJSONEncoder(ecszap.NewDefaultEncoderConfig())
+	// Transition from existing zapcore loggers:
+	//
+	// ensure to make the encoder configuration ECS compatible
+	encoderConfig := ecszap.ECSCompatibleEncoderConfig(zap.NewDevelopmentEncoderConfig())
+	// create a zapcore.Core using this enocder configuration
+	encoder := zapcore.NewJSONEncoder(encoderConfig)
 	core = zapcore.NewCore(encoder, os.Stdout, zap.DebugLevel)
-	// wrap your own core with the ecszap core
+	// wrap the core with an ecszap.Core
 	logger = zap.New(ecszap.WrapCore(core), zap.AddCaller())
 	defer logger.Sync()
 	logger.With(zap.Error(errors.New("wrapCore"))).Error("boom")
 	// Log Output:
 	//{
-	//	"log.level":"error",
+	//	"log.level":"ERROR",
 	//	"@timestamp":1584716847524082,
 	//	"log.origin":{
 	//		"file.name":"main/main.go",
@@ -147,7 +151,6 @@ func main() {
 	//}
 }
 ```
-
 
 ## References
 * Introduction to ECS [blog post](https://www.elastic.co/blog/introducing-the-elastic-common-schema).
