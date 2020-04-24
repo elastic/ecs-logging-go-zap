@@ -72,7 +72,7 @@ logger.Info("some logging info",
 	//}
 ```
 
-### Log Errors
+### Log errors
 ```
 err := errors.New("boom")
 logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
@@ -121,7 +121,7 @@ sugar.Infow("some logging info",
 	//}
 ```
 
-### Advanced Use Case
+### Wrap a custom underlying zapcore.Core
 ```
 encoderConfig := ecszap.NewDefaultEncoderConfig()
 encoder := zapcore.NewJSONEncoder(encoderConfig.ToZapCoreEncoderConfig())
