@@ -54,44 +54,65 @@ func (tw *testOutput) reset() {
 
 func TestECSZapLogger_With(t *testing.T) {
 	out := testOutput{}
-	core := NewCore(NewDefaultEncoderConfig(), &out, zap.DebugLevel)
-	logger := zap.New(core, zap.AddCaller())
-	defer logger.Sync()
 
-	// strongly typed fields
-	logger.Info("testlog", zap.String("foo", "bar"))
-	out.requireContains(t, []string{"ecs.version", "message",
-		"@timestamp", "log.level", "log.origin", "foo"})
+	for _, tc := range []struct {
+		name string
+		core zapcore.Core
+	}{
+		{name: "newCoreFromConfig",
+			core: NewCore(NewDefaultEncoderConfig(), &out, zap.DebugLevel)},
+		{name: "",
+			core: func() zapcore.Core {
+				ecsEncCfg := ECSCompatibleEncoderConfig(zap.NewProductionEncoderConfig())
+				enc := zapcore.NewJSONEncoder(ecsEncCfg)
+				core := zapcore.NewCore(enc, &out, zap.DebugLevel)
+				return WrapCore(core)
+			}()},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
 
-	// log a wrapped error
-	out.reset()
-	err := errors.New("boom")
-	logger.Error("some error", zap.Error(errs.Wrap(err, "crash")))
-	out.requireContains(t, []string{"error"})
+			logger := zap.New(tc.core, zap.AddCaller())
+			defer logger.Sync()
 
-	// Adding logger wide fields and a logger name
-	out.reset()
-	logger = logger.With(zap.String("foo", "bar"))
-	logger = logger.With(zap.Error(errors.New("wrapCore Error")))
-	logger = logger.Named("mylogger")
-	logger.Debug("debug message")
-	out.requireContains(t, []string{"log.logger", "foo", "error"})
+			// strongly typed fields
+			logger.Info("testlog", zap.String("foo", "bar"))
+			out.requireContains(t, []string{"ecs.version", "message",
+				"@timestamp", "log.level", "log.origin", "foo"})
 
-	// Use loosely typed logger
-	out.reset()
-	sugar := logger.Sugar()
-	sugar.Infow("some logging info",
-		"foo", "bar",
-		"count", 17,
-	)
-	out.requireContains(t, []string{"ecs.version", "message",
-		"@timestamp", "log.level", "log.origin", "foo", "count"})
+			// log a wrapped error
+			out.reset()
+			err := errors.New("boom")
+			logger.Error("some error", zap.Error(errs.Wrap(err, "crash")))
+			out.requireContains(t, []string{"error"})
 
+			// Adding logger wide fields and a logger name
+			out.reset()
+			logger = logger.With(zap.String("foo", "bar"))
+			logger = logger.With(zap.Error(errors.New("wrapCore Error")))
+			logger = logger.Named("mylogger")
+			logger.Debug("debug message")
+			out.requireContains(t, []string{"log.logger", "foo", "error"})
+
+			// Use loosely typed logger
+			out.reset()
+			sugar := logger.Sugar()
+			sugar.Infow("some logging info",
+				"foo", "bar",
+				"count", 17,
+			)
+			out.requireContains(t, []string{"ecs.version", "message",
+				"@timestamp", "log.level", "log.origin", "foo", "count"})
+
+			out.reset()
+
+		})
+	}
 	// Wrapped logger
 	out.reset()
-	encoder := NewJSONEncoder(NewDefaultEncoderConfig())
-	core = zapcore.NewCore(encoder, &out, zap.DebugLevel)
-	logger = zap.New(WrapCore(core), zap.AddCaller())
+	cfg := ECSCompatibleEncoderConfig(zap.NewProductionEncoderConfig())
+	encoder := zapcore.NewJSONEncoder(cfg)
+	core := zapcore.NewCore(encoder, &out, zap.DebugLevel)
+	logger := zap.New(WrapCore(core), zap.AddCaller())
 	defer logger.Sync()
 	logger.With(zap.Error(errors.New("wrapCore"))).Error("boom")
 	out.requireContains(t, []string{"error", "message"})
