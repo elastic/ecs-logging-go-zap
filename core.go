@@ -29,7 +29,7 @@ const version = "1.5.0"
 // NewCore creates a zapcore.Core that uses an ECS conformant JSON encoder.
 // This is the safest way to create an ECS compatible core.
 func NewCore(cfg EncoderConfig, ws zapcore.WriteSyncer, enab zapcore.LevelEnabler) zapcore.Core {
-	enc := zapcore.NewJSONEncoder(toZapCoreEncoderConfig(cfg))
+	enc := zapcore.NewJSONEncoder(cfg.ToZapCoreEncoderConfig())
 	return WrapCore(zapcore.NewCore(enc, ws, enab))
 }
 

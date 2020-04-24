@@ -40,7 +40,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 		{name: "defaultConfig",
 			cfg: NewDefaultEncoderConfig(),
 			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
+						"@timestamp": "2020-03-06T09:41:23.953+0100",
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
@@ -49,36 +49,23 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"log.origin.stacktrace": "stacktrace frames",
 						"log.logger": "ECS",
 						"foo": "bar",
-						"count": 8}`},
+						"dur": 5000000}`},
 		{name: "defaultUnmarshal",
 			input: "",
 			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
+						"@timestamp": "2020-03-06T09:41:23.953+0100",
 						"message": "log message",
 						"foo": "bar",
-						"count": 8}`},
-		{name: "shortCaller",
-			input: `{"lineEnding": "\n",
-					 "nameEncoder": "full",
+						"dur": 5000000}`},
+		{name: "allEnabled",
+			input: `{"enableName": true, 
+  					 "enableStacktrace": true,
+					 "enableCaller":true,
 					 "levelEncoder": "upper",
 				 	 "durationEncoder": "ms",
 					 "callerEncoder": "short"}`,
 			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
-						"message": "log message",
-						"foo": "bar",
-						"count": 8}`},
-		{name: "fullCaller",
-			input: `{"callerEncoder": "full"}`,
-			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
-						"message": "log message",
-						"foo": "bar",
-						"count": 8}`},
-		{name: "enabled",
-			input: `{"enableName": true, "enableStacktrace": true, "enableCaller":true}`,
-			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
+						"@timestamp": "2020-03-06T09:41:23.953+0100",
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
@@ -87,7 +74,18 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"log.origin.stacktrace": "stacktrace frames",
 						"log.logger": "ECS",
 						"foo": "bar",
-						"count": 8}`},
+						"dur": 5}`},
+		{name: "fullCaller",
+			input: `{"callerEncoder": "full","enableCaller":true}`,
+			expected: `{"log.level": "debug",
+						"@timestamp": "2020-03-06T09:41:23.953+0100",
+						"message": "log message",
+						"log.origin": {
+							"file.line": 30,
+							"file.name": "/Home/foo/coding/ecszap/json_encoder_test.go"
+						},
+						"foo": "bar",
+						"dur": 5000000}`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			// setup
@@ -101,14 +99,14 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 			}
 			fields := []zapcore.Field{
 				zap.String("foo", "bar"),
-				zap.Int("count", 8),
+				zap.Duration("dur", 5*time.Millisecond),
 			}
 			//parse config and create encoder from it
 			cfg := tc.cfg
 			if tc.input != "" {
 				require.NoError(t, json.Unmarshal([]byte(tc.input), &cfg))
 			}
-			enc := zapcore.NewJSONEncoder(toZapCoreEncoderConfig(cfg))
+			enc := zapcore.NewJSONEncoder(cfg.ToZapCoreEncoderConfig())
 
 			//encode entry and ensure JSONEncoder configurations are properly applied
 			buf, err := enc.EncodeEntry(entry, fields)
@@ -130,7 +128,7 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 		{name: "empty config",
 			cfg: zapcore.EncoderConfig{},
 			expected: `{"log.level": "debug",
-						"@timestamp": 1583484083953468,
+						"@timestamp": "2020-03-06T09:41:23.953+0100",
 						"message": "log message",
 						"foo": "bar",
 						"count": 8}`},
@@ -141,7 +139,7 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 				NameKey: "replaced nameKey", StacktraceKey: "replaced stacktraceKey",
 				CallerKey: "replaced callerKey", EncodeLevel: zapcore.CapitalLevelEncoder},
 			expected: `{"log.level": "DEBUG",
-						"@timestamp": 1583484083953468,
+						"@timestamp": 1583484083953.468,
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
