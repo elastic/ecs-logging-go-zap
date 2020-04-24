@@ -38,9 +38,10 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 		expected string
 	}{
 		{name: "defaultConfig",
-			cfg: NewDefaultEncoderConfig(),
+			cfg:   NewDefaultEncoderConfig(),
+			input: `{"timeEncoder":"millis"}`,
 			expected: `{"log.level": "debug",
-						"@timestamp": "2020-03-06T09:41:23.953+0100",
+						"@timestamp": 1583484083953.468,
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
@@ -51,9 +52,9 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"foo": "bar",
 						"dur": 5000000}`},
 		{name: "defaultUnmarshal",
-			input: "",
+			input: `{"timeEncoder":"millis"}`,
 			expected: `{"log.level": "debug",
-						"@timestamp": "2020-03-06T09:41:23.953+0100",
+						"@timestamp": 1583484083953.468,
 						"message": "log message",
 						"foo": "bar",
 						"dur": 5000000}`},
@@ -62,10 +63,11 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
   					 "enableStacktrace": true,
 					 "enableCaller":true,
 					 "levelEncoder": "upper",
+					 "timeEncoder":"nanos",
 				 	 "durationEncoder": "ms",
 					 "callerEncoder": "short"}`,
 			expected: `{"log.level": "debug",
-						"@timestamp": "2020-03-06T09:41:23.953+0100",
+						"@timestamp": 1583484083953467800,
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
@@ -76,9 +78,9 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"foo": "bar",
 						"dur": 5}`},
 		{name: "fullCaller",
-			input: `{"callerEncoder": "full","enableCaller":true}`,
+			input: `{"callerEncoder": "full","enableCaller":true,"timeEncoder":"millis"}`,
 			expected: `{"log.level": "debug",
-						"@timestamp": "2020-03-06T09:41:23.953+0100",
+						"@timestamp": 1583484083953.468,
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
@@ -125,9 +127,9 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 		expected string
 	}{
 		{name: "empty config",
-			cfg: zapcore.EncoderConfig{},
+			cfg: zapcore.EncoderConfig{EncodeTime: zapcore.EpochTimeEncoder},
 			expected: `{"log.level": "debug",
-						"@timestamp": "2020-03-06T09:41:23.953+0100",
+						"@timestamp": 1583484083.9534678,
 						"message": "log message",
 						"foo": "bar",
 						"count": 8}`},
@@ -153,7 +155,7 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 			// setup
 			entry := zapcore.Entry{
 				Level:      zapcore.DebugLevel,
-				Time:       time.Unix(1583484083, 953467845),
+				Time:       time.Unix(1583484083, 953467845).UTC(),
 				Message:    "log message",
 				Caller:     caller,
 				Stack:      "stacktrace frames",
