@@ -34,35 +34,25 @@ require go.elastic.co/ecszap master
 ```
 
 ## Example usage
+### Set up default logger
+```
+encoderConfig := ecszap.NewDefaultEncoderConfig()
+core := ecszap.NewCore(encoderConfig, os.Stdout, zap.DebugLevel)
+logger := zap.New(core, zap.AddCaller())
 ```
 
-import (
-	"errors"
-	"os"
+### Use structured logging
+```
+// Adding fields and a logger name
+logger = logger.With(zap.String("custom", "foo"))
+logger = logger.Named("mylogger")
 
-	pkgerrors "github.com/pkg/errors"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+// Use strongly typed Field values
+logger.Info("some logging info",
+    zap.Int("count", 17),
+    zap.Error(errors.New("boom")),
+}
 
-	"go.elastic.co/ecszap"
-)
-
-func main() {
-	// Create logger using an ecszap.Core instance
-	cfg := ecszap.NewDefaultEncoderConfig()
-	core := ecszap.NewCore(cfg, os.Stdout, zap.DebugLevel)
-	logger := zap.New(core, zap.AddCaller())
-	defer logger.Sync()
-
-	// Adding fields and a logger name
-	logger = logger.With(zap.String("custom", "foo"))
-	logger = logger.Named("mylogger")
-
-	// Use strongly typed Field values
-	logger.Info("some logging info",
-		zap.Int("count", 17),
-		zap.Error(errors.New("boom")),
-	)
 	// Log Output:
 	//{
 	//	"log.level":"info",
@@ -80,10 +70,13 @@ func main() {
 	//		"message":"boom"
 	//	}
 	//}
+```
 
-	// Log a wrapped error
-	err := errors.New("boom")
-	logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
+### Log Errors
+```
+err := errors.New("boom")
+logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
+
 	// Log Output:
 	//{
 	//	"log.level":"error",
@@ -101,13 +94,16 @@ func main() {
 	//		"stacktrace": "\nexample.example\n\t/Users/xyz/example/example.go:50\nruntime.example\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/proc.go:203\nruntime.goexit\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/asm_amd64.s:1357"
 	//	}
 	//}
+```
 
-	// Use sugar logger with key-value pairs
-	sugar := logger.Sugar()
-	sugar.Infow("some logging info",
-		"foo", "bar",
-		"count", 17,
-	)
+### Use sugar logger
+```
+sugar := logger.Sugar()
+sugar.Infow("some logging info",
+    "foo", "bar",
+    "count", 17,
+)
+
 	// Log Output:
 	//{
 	//	"log.level":"info",
@@ -123,33 +119,23 @@ func main() {
 	//	"foo":"bar",
 	//	"count":17
 	//}
+```
 
-	// Transition from existing zapcore loggers:
-	//
-	// ensure to make the encoder configuration ECS compatible
-	encoderConfig := ecszap.ECSCompatibleEncoderConfig(zap.NewDevelopmentEncoderConfig())
-	// create a zapcore.Core using this enocder configuration
-	encoder := zapcore.NewJSONEncoder(encoderConfig)
-	core = zapcore.NewCore(encoder, os.Stdout, zap.DebugLevel)
-	// wrap the core with an ecszap.Core
-	logger = zap.New(ecszap.WrapCore(core), zap.AddCaller())
-	defer logger.Sync()
-	logger.With(zap.Error(errors.New("wrapCore"))).Error("boom")
-	// Log Output:
-	//{
-	//	"log.level":"ERROR",
-	//	"@timestamp":1584716847524082,
-	//	"log.origin":{
-	//		"file.name":"main/main.go",
-	//		"file.line":338
-	//	},
-	//	"message":"boom",
-	//	"ecs.version":"1.5.0",
-	//	"error":{
-	//		"message":"wrapCore"
-	//	}
-	//}
-}
+### Advanced Use Case
+```
+encoderConfig := ecszap.NewDefaultEncoderConfig()
+encoder := zapcore.NewJSONEncoder(encoderConfig.ToZapCoreEncoderConfig())
+syslogCore := newSyslogCore(encoder, level) //create your own loggers
+core := ecszap.WrapCore(syslogCore)
+logger := zap.New(core, zap.AddCaller())
+```
+
+### Transition from existing configurations
+```
+encoderConfig := ecszap.ECSCompatibleEncoderConfig(zap.NewDevelopmentEncoderConfig())
+encoder := zapcore.NewJSONEncoder(encoderConfig)
+core := zapcore.NewCore(encoder, os.Stdout, zap.DebugLevel)
+logger := zap.New(ecszap.WrapCore(core), zap.AddCaller())
 ```
 
 ## References
