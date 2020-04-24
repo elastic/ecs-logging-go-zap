@@ -101,7 +101,6 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 				zap.String("foo", "bar"),
 				zap.Duration("dur", 5*time.Millisecond),
 			}
-			//parse config and create encoder from it
 			cfg := tc.cfg
 			if tc.input != "" {
 				require.NoError(t, json.Unmarshal([]byte(tc.input), &cfg))

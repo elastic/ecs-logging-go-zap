@@ -35,14 +35,14 @@ require go.elastic.co/ecszap master
 
 ## Example usage
 ### Set up default logger
-```
+```go
 encoderConfig := ecszap.NewDefaultEncoderConfig()
 core := ecszap.NewCore(encoderConfig, os.Stdout, zap.DebugLevel)
 logger := zap.New(core, zap.AddCaller())
 ```
 
 ### Use structured logging
-```
+```go
 // Adding fields and a logger name
 logger = logger.With(zap.String("custom", "foo"))
 logger = logger.Named("mylogger")
@@ -73,7 +73,7 @@ logger.Info("some logging info",
 ```
 
 ### Log errors
-```
+```go
 err := errors.New("boom")
 logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
 
@@ -97,7 +97,7 @@ logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
 ```
 
 ### Use sugar logger
-```
+```go
 sugar := logger.Sugar()
 sugar.Infow("some logging info",
     "foo", "bar",
@@ -122,7 +122,7 @@ sugar.Infow("some logging info",
 ```
 
 ### Wrap a custom underlying zapcore.Core
-```
+```go
 encoderConfig := ecszap.NewDefaultEncoderConfig()
 encoder := zapcore.NewJSONEncoder(encoderConfig.ToZapCoreEncoderConfig())
 syslogCore := newSyslogCore(encoder, level) //create your own loggers
@@ -131,7 +131,7 @@ logger := zap.New(core, zap.AddCaller())
 ```
 
 ### Transition from existing configurations
-```
+```go
 encoderConfig := ecszap.ECSCompatibleEncoderConfig(zap.NewDevelopmentEncoderConfig())
 encoder := zapcore.NewJSONEncoder(encoderConfig)
 core := zapcore.NewCore(encoder, os.Stdout, zap.DebugLevel)
