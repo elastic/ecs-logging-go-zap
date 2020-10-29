@@ -16,7 +16,7 @@ Following fields will be added by default:
     "log.level":"info",
     "@timestamp":1583748236254129,
     "message":"some logging info",
-    "ecs.version":"1.5.0"
+    "ecs.version":"1.6.0"
 }
 ```
 
@@ -63,7 +63,7 @@ logger.Info("some logging info",
 	//		"file.line":265
 	//	},
 	//	"message":"some logging info",
-	//	"ecs.version":"1.5.0",
+	//	"ecs.version":"1.6.0",
 	//	"custom":"foo",
 	//	"count":17,
 	//	"error":{
@@ -87,7 +87,7 @@ logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
 	//		"file.line":290
 	//	},
 	//	"message":"some error",
-	//	"ecs.version":"1.5.0",
+	//	"ecs.version":"1.6.0",
 	//	"custom":"foo",
 	//	"error":{
 	//		"message":"crash: boom",
@@ -114,7 +114,7 @@ sugar.Infow("some logging info",
 	//		"file.line":311
 	//	},
 	//	"message":"some logging info",
-	//	"ecs.version":"1.5.0",
+	//	"ecs.version":"1.6.0",
 	//	"custom":"foo",
 	//	"foo":"bar",
 	//	"count":17
