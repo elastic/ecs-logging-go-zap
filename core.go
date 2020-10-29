@@ -24,7 +24,7 @@ import (
 	"go.elastic.co/ecszap/internal"
 )
 
-const version = "1.5.0"
+const version = "1.6.0"
 
 // NewCore creates a zapcore.Core that uses an ECS conformant JSON encoder.
 // This is the safest way to create an ECS compatible core.
