@@ -47,7 +47,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 							"file.line": 30,
 							"file.name": "ecszap/json_encoder_test.go"
 						},
-						"log.origin.stacktrace": "stacktrace frames",
+						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",
 						"foo": "bar",
 						"dur": 5000000}`},
@@ -60,7 +60,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"dur": 5000000}`},
 		{name: "allEnabled",
 			input: `{"enableName": true, 
-  					 "enableStacktrace": true,
+  					 "enableStackTrace": true,
 					 "enableCaller":true,
 					 "levelEncoder": "upper",
 					 "timeEncoder":"nanos",
@@ -73,7 +73,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 							"file.line": 30,
 							"file.name": "ecszap/json_encoder_test.go"
 						},
-						"log.origin.stacktrace": "stacktrace frames",
+						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",
 						"foo": "bar",
 						"dur": 5}`},
@@ -96,7 +96,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 				Time:       time.Unix(1583484083, 953467845),
 				Message:    "log message",
 				Caller:     caller,
-				Stack:      "stacktrace frames",
+				Stack:      "frames",
 				LoggerName: "ECS",
 			}
 			fields := []zapcore.Field{
@@ -137,7 +137,7 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 			cfg: zapcore.EncoderConfig{
 				MessageKey: "replaced messageKey", LevelKey: "replaced levelKey",
 				TimeKey: "replaced timeKey", EncodeTime: zapcore.EpochMillisTimeEncoder,
-				NameKey: "replaced nameKey", StacktraceKey: "replaced stacktraceKey",
+				NameKey: "replaced nameKey", StacktraceKey: "replaced stackTraceKey",
 				CallerKey: "replaced callerKey", EncodeLevel: zapcore.CapitalLevelEncoder},
 			expected: `{"log.level": "DEBUG",
 						"@timestamp": 1583484083953.468,
@@ -146,7 +146,7 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 							"file.line": 30,
 							"file.name": "ecszap/json_encoder_test.go"
 						},
-						"log.origin.stacktrace": "stacktrace frames",
+						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",
 						"foo": "bar",
 						"count": 8}`},
@@ -158,7 +158,7 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 				Time:       time.Unix(1583484083, 953467845).UTC(),
 				Message:    "log message",
 				Caller:     caller,
-				Stack:      "stacktrace frames",
+				Stack:      "frames",
 				LoggerName: "ECS",
 			}
 			fields := []zapcore.Field{
