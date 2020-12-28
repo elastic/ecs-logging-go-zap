@@ -33,12 +33,17 @@ func NewCore(cfg EncoderConfig, ws zapcore.WriteSyncer, enab zapcore.LevelEnable
 	return WrapCore(zapcore.NewCore(enc, ws, enab))
 }
 
-// WrapCore wraps a given core with ECS core functionality. For ECS
-// compatibility, ensure that the wrapped zapcore.Core uses an encoder
+// WrapCore wraps a core with ECS core functionality and returns a zapcore.Core.
+// For ECS compatibility, ensure that the wrapped zapcore.Core uses an encoder
 // that is created from an ECS compatible configuration. For further details
 // check out ecszap.EncoderConfig or ecszap.ECSCompatibleEncoderConfig.
 func WrapCore(c zapcore.Core) zapcore.Core {
 	return &core{c}
+}
+
+// WrapCoreOption returns a zap.Option, wrapping the underlying zapcore.Core.
+func WrapCoreOption() zap.Option {
+	return zap.WrapCore(WrapCore)
 }
 
 type core struct {

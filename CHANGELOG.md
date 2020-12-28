@@ -1,7 +1,17 @@
 # CHANGELOG
 Changelog for ecszap
 
-## 0.2.0 (unreleased)
+## unreleased
+
+### Enhancement
+* Add `ecszap.WrapCoreOption` for convenience [pull#22](https://github.com/elastic/ecs-logging-go-zap/pull/22)
+
+## 0.3.0
+
+### Enhancement
+* Update ECS version to 1.6.0 [pull#17](https://github.com/elastic/ecs-logging-go-zap/pull/17)
+
+## 0.2.0
 
 ### Enhancement
 * Add `ecszap.ECSCompatibleEncoderConfig` for making existing encoder config ECS conformant [pull#12](https://github.com/elastic/ecs-logging-go-zap/pull/12)
