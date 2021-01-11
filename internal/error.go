@@ -36,7 +36,7 @@ func NewError(err error) zapcore.ObjectMarshaler {
 func (err ecsError) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("message", err.Error())
 	if e, ok := err.error.(stackTracer); ok {
-		enc.AddString("stacktrace", fmt.Sprintf("%+v", e.StackTrace()))
+		enc.AddString("stack_trace", fmt.Sprintf("%+v", e.StackTrace()))
 	}
 
 	// TODO(simitt): support for improved error handling

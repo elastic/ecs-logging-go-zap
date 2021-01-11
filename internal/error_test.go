@@ -57,7 +57,7 @@ func (e multiErr) Errors() []error {
 func TestEncodeError(t *testing.T) {
 	err1 := errors.New("first")
 	err2 := errors.New("second")
-	stErr := everythingErr{multiErr{error: errors.New("with stacktrace")}}
+	stErr := everythingErr{multiErr{error: errors.New("with stack trace")}}
 
 	for _, tc := range []struct {
 		name     string
@@ -65,15 +65,15 @@ func TestEncodeError(t *testing.T) {
 		expected map[string]interface{}
 	}{
 		{name: "simple", err: err1, expected: map[string]interface{}{"message": "first"}},
-		{name: "stacktrace", err: stErr,
-			expected: map[string]interface{}{"message": "with stacktrace", "stacktrace": ""}},
+		{name: "stack_trace", err: stErr,
+			expected: map[string]interface{}{"message": "with stack trace", "stack_trace": ""}},
 		{name: "multi", err: newMultiErr(err1, err2),
 			expected: map[string]interface{}{
 				"message": "first",
 				"cause": []interface{}{
 					map[string]interface{}{"message": "first"},
 					map[string]interface{}{"message": "second"}}}},
-		{name: "multiWithStacktraceCause", err: newMultiErr(err1, newMultiErr(err2, stErr)),
+		{name: "multiWithStackTraceCause", err: newMultiErr(err1, newMultiErr(err2, stErr)),
 			expected: map[string]interface{}{
 				"message": "first",
 				"cause": []interface{}{
@@ -82,18 +82,18 @@ func TestEncodeError(t *testing.T) {
 						"message": "second",
 						"cause": []interface{}{
 							map[string]interface{}{"message": "second"},
-							map[string]interface{}{"message": "with stacktrace", "stacktrace": ""},
+							map[string]interface{}{"message": "with stack trace", "stack_trace": ""},
 						},
 					},
 				},
 			}},
-		{name: "everything", err: everythingErr{multiErr{errors.New("with stacktrace"), []error{err1, err2}}},
+		{name: "everything", err: everythingErr{multiErr{errors.New("with stack trace"), []error{err1, err2}}},
 			expected: map[string]interface{}{
-				"message": "with stacktrace",
+				"message": "with stack trace",
 				"cause": []interface{}{
 					map[string]interface{}{"message": "first"},
 					map[string]interface{}{"message": "second"}},
-				"stacktrace": ""}},
+				"stack_trace": ""}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			enc := zapcore.NewMapObjectEncoder()
