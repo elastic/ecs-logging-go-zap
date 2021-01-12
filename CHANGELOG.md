@@ -6,6 +6,9 @@ Changelog for ecszap
 ### Enhancement
 * Add `ecszap.WrapCoreOption` for convenience [pull#22](https://github.com/elastic/ecs-logging-go-zap/pull/22)
 
+### Bug Fixes
+* Change `stacktrace` to `stack_trace` in output and in json and yaml config option for `EncoderConfig.EnableStacktrace` [pull#21](https://github.com/elastic/ecs-logging-go-zap/pull/21)
+
 ## 0.3.0
 
 ### Enhancement

@@ -33,7 +33,7 @@ var (
 	logLevelKey   = "log.level"
 	logNameKey    = "log.logger"
 	messageKey    = "message"
-	stacktraceKey = "log.origin.stacktrace"
+	stackTraceKey = "log.origin.stack_trace"
 	timeKey       = "@timestamp"
 )
 
@@ -45,8 +45,8 @@ type EncoderConfig struct {
 	// used for serialization.
 	EnableName bool `json:"enableName" yaml:"enableName"`
 
-	// EnableStacktrace controls if a stacktrace should be serialized when available.
-	EnableStacktrace bool `json:"enableStacktrace" yaml:"enableStacktrace"`
+	// EnableStackTrace controls if a stack trace should be serialized when available.
+	EnableStackTrace bool `json:"enableStackTrace" yaml:"enableStackTrace"`
 
 	// EnableCaller controls if the entry caller should be serialized.
 	// If enabled, the EncodeCaller configuration is used for serialization.
@@ -78,7 +78,7 @@ func NewDefaultEncoderConfig() EncoderConfig {
 	return EncoderConfig{
 		EnableName:       true,
 		EnableCaller:     true,
-		EnableStacktrace: true,
+		EnableStackTrace: true,
 		LineEnding:       defaultLineEnding,
 		EncodeName:       defaultEncodeName,
 		EncodeLevel:      defaultEncodeLevel,
@@ -112,8 +112,8 @@ func (cfg EncoderConfig) ToZapCoreEncoderConfig() zapcore.EncoderConfig {
 			encCfg.EncodeName = defaultEncodeName
 		}
 	}
-	if cfg.EnableStacktrace {
-		encCfg.StacktraceKey = stacktraceKey
+	if cfg.EnableStackTrace {
+		encCfg.StacktraceKey = stackTraceKey
 	}
 	if cfg.EnableCaller {
 		encCfg.CallerKey = callerKey
@@ -150,7 +150,7 @@ func ECSCompatibleEncoderConfig(cfg zapcore.EncoderConfig) zapcore.EncoderConfig
 	// as zap omits these log attributes when keys are not defined
 	// and ecszap does not intend to change this logic
 	if cfg.StacktraceKey != "" {
-		cfg.StacktraceKey = stacktraceKey
+		cfg.StacktraceKey = stackTraceKey
 	}
 	if cfg.CallerKey != "" {
 		cfg.CallerKey = callerKey
