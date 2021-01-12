@@ -143,7 +143,7 @@ logger := zap.New(ecszap.WrapCore(core), zap.AddCaller())
 ```go
 config := zap.NewProductionConfig()
 config.EncoderConfig = ecszap.ECSCompatibleEncoderConfig(config.EncoderConfig)
-logger, err := config.Build(ecszap.WrapCoreOption())
+logger, err := config.Build(ecszap.WrapCoreOption(), zap.AddCaller())
 ```
 
 
