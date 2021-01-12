@@ -24,8 +24,6 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	errs "github.com/pkg/errors"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -61,7 +59,7 @@ func TestECSZapLogger_With(t *testing.T) {
 	}{
 		{name: "newCoreFromConfig",
 			core: NewCore(NewDefaultEncoderConfig(), &out, zap.DebugLevel)},
-		{name: "",
+		{name: "wrappedCore",
 			core: func() zapcore.Core {
 				ecsEncCfg := ECSCompatibleEncoderConfig(zap.NewProductionEncoderConfig())
 				enc := zapcore.NewJSONEncoder(ecsEncCfg)
@@ -81,17 +79,19 @@ func TestECSZapLogger_With(t *testing.T) {
 
 			// log a wrapped error
 			out.reset()
-			err := errors.New("boom")
-			logger.Error("some error", zap.Error(errs.Wrap(err, "crash")))
-			out.requireContains(t, []string{"error"})
+			logger.With(zap.Error(errors.New("test error"))).Error("boom")
+			out.requireContains(t, []string{"error", "message"})
+			assert.Equal(t, "boom", out.m["message"])
+			outErr, ok := out.m["error"].(map[string]interface{})
+			require.True(t, ok, out.m["error"])
+			assert.Equal(t, map[string]interface{}{"message": "test error"}, outErr)
 
 			// Adding logger wide fields and a logger name
 			out.reset()
 			logger = logger.With(zap.String("foo", "bar"))
-			logger = logger.With(zap.Error(errors.New("wrapCore Error")))
 			logger = logger.Named("mylogger")
 			logger.Debug("debug message")
-			out.requireContains(t, []string{"log.logger", "foo", "error"})
+			out.requireContains(t, []string{"log.logger", "foo"})
 
 			// Use loosely typed logger
 			out.reset()
@@ -104,20 +104,6 @@ func TestECSZapLogger_With(t *testing.T) {
 				"@timestamp", "log.level", "log.origin", "foo", "count"})
 
 			out.reset()
-
 		})
 	}
-	// Wrapped logger
-	out.reset()
-	cfg := ECSCompatibleEncoderConfig(zap.NewProductionEncoderConfig())
-	encoder := zapcore.NewJSONEncoder(cfg)
-	core := zapcore.NewCore(encoder, &out, zap.DebugLevel)
-	logger := zap.New(WrapCore(core), zap.AddCaller())
-	defer logger.Sync()
-	logger.With(zap.Error(errors.New("wrapCore"))).Error("boom")
-	out.requireContains(t, []string{"error", "message"})
-	assert.Equal(t, "boom", out.m["message"])
-	outErr, ok := out.m["error"].(map[string]interface{})
-	require.True(t, ok, out.m["error"])
-	assert.Equal(t, map[string]interface{}{"message": "wrapCore"}, outErr)
 }
