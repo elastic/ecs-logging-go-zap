@@ -56,7 +56,7 @@ pipeline {
           unstash 'source'
           withGoEnv(){
             dir("${BASE_DIR}"){
-              sh script: '.ci/scripts/run-tests.sh', label: 'Run tests'
+              goTestJUnit(options: '-v ./...', output: 'build/junit-report.xml')
             }
           }
         }
