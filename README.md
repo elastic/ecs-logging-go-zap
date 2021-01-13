@@ -14,7 +14,7 @@ Following fields will be added by default:
 ```
 {
     "log.level":"info",
-    "@timestamp":1583748236254129,
+    "@timestamp":"2020-09-13T10:48:03.000Z",
     "message":"some logging info",
     "ecs.version":"1.6.0"
 }
@@ -56,7 +56,7 @@ logger.Info("some logging info",
 	// Log Output:
 	//{
 	//	"log.level":"info",
-	//	"@timestamp":1584716847523456,
+	//	"@timestamp":"2020-09-13T10:48:03.000Z",
 	//	"log.logger":"mylogger",
 	//	"log.origin":{
 	//		"file.name":"main/main.go",
@@ -80,7 +80,7 @@ logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
 	// Log Output:
 	//{
 	//	"log.level":"error",
-	//	"@timestamp":1584716847523842,
+	//	"@timestamp":"2020-09-13T10:48:03.000Z",
 	//	"log.logger":"mylogger",
 	//	"log.origin":{
 	//		"file.name":"main/main.go",
@@ -107,7 +107,7 @@ sugar.Infow("some logging info",
 	// Log Output:
 	//{
 	//	"log.level":"info",
-	//	"@timestamp":1584716847523941,
+	//	"@timestamp":"2020-09-13T10:48:03.000Z",
 	//	"log.logger":"mylogger",
 	//	"log.origin":{
 	//		"file.name":"main/main.go",

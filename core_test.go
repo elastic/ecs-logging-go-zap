@@ -35,7 +35,7 @@ func TestCore(t *testing.T) {
 		zap.Error(errors.New("boom")),
 	}
 	assertLogged := func(t *testing.T, out testOutput) {
-		out.requireContains(t, []string{"error", "foo"})
+		out.validate(t, "foo", "error")
 		outErr, ok := out.m["error"].(map[string]interface{})
 		require.True(t, ok, out.m)
 		assert.Equal(t, map[string]interface{}{"message": "boom"}, outErr)
