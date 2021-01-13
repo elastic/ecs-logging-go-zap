@@ -62,14 +62,14 @@ func (tw *testOutput) validate(t *testing.T, keys ...string) {
 	// skip Default value checks as they are not yet implemented
 	// skip TopLevelField check as ecszap logger logs in dot notation anyways
 	// skip Sanitization as it is not implemented yet
-	for name, val := range tw.m {
-		field, ok := spec.V1.Fields[name]
+	for name, field := range spec.V1.Fields {
+		val, ok := tw.m[name]
+		if field.Required { // all required fields must be present in the log line
+			require.True(t, ok)
+			require.NotNil(t, val)
+		}
 		if !ok { // custom field not defined in spec
 			continue
-		}
-		if field.Required { // all required fields must be present in the log line
-			require.Contains(t, tw.m, name)
-			require.NotNil(t, tw.m[name])
 		}
 		if field.Type != "" { // the defined type must be met
 			var ok bool
