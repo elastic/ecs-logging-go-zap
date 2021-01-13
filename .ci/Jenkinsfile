@@ -54,10 +54,8 @@ pipeline {
         withGithubNotify(context: 'Test', tab: 'tests') {
           deleteDir()
           unstash 'source'
-          withGoEnv(){
-            dir("${BASE_DIR}"){
-              goTestJUnit(options: '-v ./...', output: 'build/junit-report.xml')
-            }
+          dir("${BASE_DIR}"){
+            goTestJUnit(options: '-v ./...', output: 'build/junit-report.xml')
           }
         }
       }
