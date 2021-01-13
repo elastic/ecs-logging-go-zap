@@ -28,8 +28,6 @@ import (
 	"go.elastic.co/ecszap/internal/spec"
 	"go.uber.org/zap/zapcore"
 
-	errs "github.com/pkg/errors"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -46,7 +44,7 @@ func (tw *testOutput) Write(p []byte) (int, error) {
 
 func (tw *testOutput) Sync() error { return nil }
 
-func (tw *testOutput) validate(t *testing.T, keys []string) {
+func (tw *testOutput) validate(t *testing.T, keys ...string) {
 	for _, s := range keys {
 		require.Contains(t, tw.m, s)
 	}
@@ -113,7 +111,7 @@ func TestECSZapLogger(t *testing.T) {
 	}{
 		{name: "newCoreFromConfig",
 			core: NewCore(NewDefaultEncoderConfig(), &out, zap.DebugLevel)},
-		{name: "",
+		{name: "wrappedCore",
 			core: func() zapcore.Core {
 				ecsEncCfg := ECSCompatibleEncoderConfig(zap.NewProductionEncoderConfig())
 				enc := zapcore.NewJSONEncoder(ecsEncCfg)
@@ -127,21 +125,23 @@ func TestECSZapLogger(t *testing.T) {
 
 			// strongly typed fields
 			logger.Info("testlog", zap.String("foo", "bar"))
-			out.validate(t, []string{"foo", "log.origin"})
+			out.validate(t, "foo", "log.origin")
 
 			// log a wrapped error
 			out.reset()
-			err := errors.New("boom")
-			logger.Error("some error", zap.Error(errs.Wrap(err, "crash")))
-			out.validate(t, []string{"error"})
+			logger.With(zap.Error(errors.New("test error"))).Error("boom")
+			out.validate(t, "error", "message")
+			assert.Equal(t, "boom", out.m["message"])
+			outErr, ok := out.m["error"].(map[string]interface{})
+			require.True(t, ok, out.m["error"])
+			assert.Equal(t, map[string]interface{}{"message": "test error"}, outErr)
 
 			// Adding logger wide fields and a logger name
 			out.reset()
 			logger = logger.With(zap.String("foo", "bar"))
-			logger = logger.With(zap.Error(errors.New("wrapCore Error")))
 			logger = logger.Named("mylogger")
 			logger.Debug("debug message")
-			out.validate(t, []string{"foo", "error"})
+			out.validate(t, "log.logger", "foo")
 
 			// Use loosely typed logger
 			out.reset()
@@ -150,23 +150,8 @@ func TestECSZapLogger(t *testing.T) {
 				"foo", "bar",
 				"count", 17,
 			)
-			out.validate(t, []string{"log.origin", "foo", "count"})
+			out.validate(t, "log.origin", "foo", "count")
 			out.reset()
-
 		})
 	}
-	// Wrapped logger
-	out.reset()
-	cfg := ECSCompatibleEncoderConfig(zap.NewProductionEncoderConfig())
-	encoder := zapcore.NewJSONEncoder(cfg)
-	core := zapcore.NewCore(encoder, &out, zap.DebugLevel)
-	logger := zap.New(WrapCore(core), zap.AddCaller())
-	defer logger.Sync()
-	logger.With(zap.Error(errors.New("wrapCore"))).Error("boom")
-	out.validate(t, []string{"message", "error"})
-	assert.Equal(t, "boom", out.m["message"])
-	outErr, ok := out.m["error"].(map[string]interface{})
-
-	require.True(t, ok, out.m["error"])
-	assert.Equal(t, map[string]interface{}{"message": "wrapCore"}, outErr)
 }

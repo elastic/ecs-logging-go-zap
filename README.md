@@ -91,7 +91,7 @@ logger.Error("some error", zap.Error(pkgerrors.Wrap(err, "crash")))
 	//	"custom":"foo",
 	//	"error":{
 	//		"message":"crash: boom",
-	//		"stacktrace": "\nexample.example\n\t/Users/xyz/example/example.go:50\nruntime.example\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/proc.go:203\nruntime.goexit\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/asm_amd64.s:1357"
+	//		"stack_trace": "\nexample.example\n\t/Users/xyz/example/example.go:50\nruntime.example\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/proc.go:203\nruntime.goexit\n\t/Users/xyz/.gvm/versions/go1.13.8.darwin.amd64/src/runtime/asm_amd64.s:1357"
 	//	}
 	//}
 ```
@@ -131,12 +131,21 @@ logger := zap.New(core, zap.AddCaller())
 ```
 
 ### Transition from existing configurations
+Depending on your needs there are different ways how to create the logger:
+
 ```go
 encoderConfig := ecszap.ECSCompatibleEncoderConfig(zap.NewDevelopmentEncoderConfig())
 encoder := zapcore.NewJSONEncoder(encoderConfig)
 core := zapcore.NewCore(encoder, os.Stdout, zap.DebugLevel)
 logger := zap.New(ecszap.WrapCore(core), zap.AddCaller())
 ```
+
+```go
+config := zap.NewProductionConfig()
+config.EncoderConfig = ecszap.ECSCompatibleEncoderConfig(config.EncoderConfig)
+logger, err := config.Build(ecszap.WrapCoreOption(), zap.AddCaller())
+```
+
 
 ## References
 * Introduction to ECS [blog post](https://www.elastic.co/blog/introducing-the-elastic-common-schema).
