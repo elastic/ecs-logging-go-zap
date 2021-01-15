@@ -43,7 +43,6 @@ logger = logger.Named("mylogger")
 logger.Info("some logging info"),
     zap.Int("count", 17),
     zap.Error(errors.New("boom")),
-}
 ----
 
 The example above produces the following log output:
