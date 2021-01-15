@@ -40,9 +40,9 @@ logger = logger.With(zap.String("custom", "foo"))
 logger = logger.Named("mylogger")
 
 // Use strongly typed Field values
-logger.Info("some logging info"),
+logger.Info("some logging info",
     zap.Int("count", 17),
-    zap.Error(errors.New("boom")),
+    zap.Error(errors.New("boom")))
 ----
 
 The example above produces the following log output:
