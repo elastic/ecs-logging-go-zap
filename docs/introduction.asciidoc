@@ -26,4 +26,4 @@ By default, the following fields are added:
 TIP: Want to learn more about ECS, ECS logging, and other available language plugins?
 See the {ecs-logging-ref}/intro.html[ECS logging guide].
 
-Ready to jump into `ecs-logging-go-zap`? <<setup,Get started>>.
+Ready to jump into `ecszap`? <<setup,Get started>>.
