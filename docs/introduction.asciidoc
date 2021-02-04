@@ -1,8 +1,6 @@
 [[intro]]
 == Introduction
 
-beta::[]
-
 ECS loggers are formatter/encoder plugins for your favorite logging libraries.
 They make it easy to format your logs into ECS-compatible JSON.
 

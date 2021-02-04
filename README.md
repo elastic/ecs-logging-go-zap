@@ -2,12 +2,6 @@
 
 Use this library for automatically adding a minimal set of ECS fields to your logs, when using [uber-go/zap](https://github.com/uber-go/zap).
 
----
-
-**Please note** that this library is in a **beta** version and backwards-incompatible changes might be introduced in future releases. While we strive to comply to [semver](https://semver.org/), we can not guarantee to avoid breaking changes in minor releases.
-
----
-
 ## Documentation
 
 Ready to get started? Documentation is at [elastic.co](https://www.elastic.co/guide/en/ecs-logging/go-zap/current/index.html).
