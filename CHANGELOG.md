@@ -3,6 +3,8 @@ Changelog for ecszap
 
 ## unreleased
 
+## 1.0.0
+
 ### Enhancement
 * Add `ecszap.WrapCoreOption` for convenience [pull#22](https://github.com/elastic/ecs-logging-go-zap/pull/22)
 
