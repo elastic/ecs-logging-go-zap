@@ -25,6 +25,20 @@ core := ecszap.NewCore(encoderConfig, os.Stdout, zap.DebugLevel)
 logger := zap.New(core, zap.AddCaller())
 ----
 
+You can customize your ECS logger. For example:
+
+[source,go]
+----
+encoderConfig := ecszap.EncoderConfig{
+  EncodeName: customNameEncoder,
+  EncodeLevel: zapcore.CapitalLevelEncoder,
+  EncodeDuration: zapcore.MillisDurationEncoder,
+  EncodeCaller: ecszap.FullCallerEncoder,
+}
+core := ecszap.NewCore(encoderConfig, os.Stdout, zap.DebugLevel)
+logger := zap.New(core, zap.AddCaller())
+----
+
 [float]
 [[examples]]
 === Examples
