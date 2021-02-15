@@ -19,6 +19,7 @@ package ecszap
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -50,6 +51,40 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"log.logger": "ECS",
 						"foo": "bar",
 						"dur": 5000000}`},
+		{name: "customizedDisabled",
+			cfg: EncoderConfig{
+				EnableName:       false,
+				EnableCaller:     false,
+				EnableStackTrace: false,
+			},
+			expected: `{"log.level": "debug",
+						"@timestamp": "2020-09-13T10:48:03.000Z",
+						"message": "log message",
+						"foo": "bar",
+						"dur": 5000000}`},
+		{name: "customized",
+			cfg: EncoderConfig{
+				EnableName:       true,
+				EnableCaller:     true,
+				EnableStackTrace: true,
+				EncodeName: func(loggerName string, enc zapcore.PrimitiveArrayEncoder) {
+					enc.AppendString(strings.ToLower(loggerName))
+				},
+				EncodeLevel:    zapcore.CapitalLevelEncoder,
+				EncodeDuration: zapcore.MillisDurationEncoder,
+				EncodeCaller:   ShortCallerEncoder,
+			},
+			expected: `{"log.level": "DEBUG",
+						"@timestamp": "2020-09-13T10:48:03.000Z",
+						"message": "log message",
+						"log.origin": {
+							"file.line": 30,
+							"file.name": "ecszap/json_encoder_test.go"
+						},
+						"log.origin.stack_trace": "frames",
+						"log.logger": "ecs",
+						"foo": "bar",
+						"dur": 5}`},
 		{name: "defaultUnmarshal",
 			expected: `{"log.level": "debug",
 						"@timestamp": "2020-09-13T10:48:03.000Z",
