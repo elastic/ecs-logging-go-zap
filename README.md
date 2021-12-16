@@ -19,4 +19,4 @@ Run `mage` to update and format you changes before submitting.
 Add new dependencies to the NOTICE.txt.
 
 ## License
-This software is licensed under the [Apache 2 license](https://github.com/elastic/ecs-logging-go/zap/blob/master/LICENSE).
+This software is licensed under the [Apache 2 license](https://github.com/elastic/ecs-logging-go-zap/blob/main/LICENSE).
