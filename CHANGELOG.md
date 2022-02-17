@@ -4,7 +4,7 @@ Changelog for ecszap
 ## unreleased
 
 ## 1.0.1
-* Updated zap to v1.21.1 [pull#42](https://github.com/elastic/ecs-logging-go-zap/pull/42)
+* Updated zap to v1.21.0 [pull#42](https://github.com/elastic/ecs-logging-go-zap/pull/42)
 
 ## 1.0.0
 
