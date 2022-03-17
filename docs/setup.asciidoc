@@ -5,6 +5,11 @@
 [[setup-step-1]]
 === Step 1: Install
 
+[source,go]
+----
+go get -u go.elastic.co/ecszap
+----
+
 Add the package to your `go.mod` file:
 
 [source,go]
