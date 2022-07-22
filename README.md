@@ -14,7 +14,7 @@ go test ./...
 ## Contribute
 Create a Pull Request from your own fork.
 
-Run `mage` to update and format you changes before submitting.
+Run `./lint.sh` to update and format you changes before submitting.
 
 Add new dependencies to the NOTICE.txt.
 
