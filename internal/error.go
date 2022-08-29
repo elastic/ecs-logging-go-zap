@@ -30,11 +30,16 @@ type ecsError struct {
 }
 
 func NewError(err error) zapcore.ObjectMarshaler {
+	if e, ok := err.(zapcore.ObjectMarshaler); ok {
+		return e
+	}
+
 	return ecsError{err}
 }
 
 func (err ecsError) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("message", err.Error())
+
 	if e, ok := err.error.(stackTracer); ok {
 		enc.AddString("stack_trace", fmt.Sprintf("%+v", e.StackTrace()))
 	}

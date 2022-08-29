@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-package internal
+package internal_test
 
 import (
 	"errors"
@@ -28,6 +28,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"go.elastic.co/ecszap/internal"
 )
 
 type everythingErr struct {
@@ -52,6 +54,18 @@ func newMultiErr(e ...error) multiErr {
 
 func (e multiErr) Errors() []error {
 	return e.errors
+}
+
+type objMarshalerErr string
+
+func (e objMarshalerErr) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("message", string(e))
+	enc.AddString("code", "42")
+	return nil
+}
+
+func (e objMarshalerErr) Error() string {
+	return string(e)
 }
 
 func TestEncodeError(t *testing.T) {
@@ -94,10 +108,14 @@ func TestEncodeError(t *testing.T) {
 					map[string]interface{}{"message": "first"},
 					map[string]interface{}{"message": "second"}},
 				"stack_trace": ""}},
+		{name: "withObjectMarshaler", err: objMarshalerErr("with object marshaler"),
+			expected: map[string]interface{}{
+				"message": "with object marshaler",
+				"code":    "42"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			enc := zapcore.NewMapObjectEncoder()
-			f := zap.Any("err", ecsError{tc.err})
+			f := zap.Any("err", internal.NewError(tc.err))
 			f.AddTo(enc)
 			loggedErr, ok := enc.Fields["err"].(map[string]interface{})
 			require.True(t, ok)
