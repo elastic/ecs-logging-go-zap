@@ -1,5 +1,0 @@
----
-- job:
-    name: apm-agent-go/ecs-logging-go-zap-mbp
-    display-name: ecs-logging-go-zap
-    description: Logging encoder for ECS compatible logs using uber-go/zap
