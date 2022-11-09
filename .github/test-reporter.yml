@@ -12,7 +12,7 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-      - uses: elastic/apm-pipeline-library/.github/actions/test-report@gh_actions
+      - uses: elastic/apm-pipeline-library/.github/actions/test-report@feature/go-json-reporter
         with:
           artifact: test-results            # artifact name
           name: Test Results                # Name of the check run which will be created
