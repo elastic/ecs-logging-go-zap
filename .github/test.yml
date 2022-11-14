@@ -37,4 +37,4 @@ jobs:
     name: Run pre-commit
     runs-on: ubuntu-latest
     steps:
-    - uses: elastic/apm-pipeline-library/.github/actions/pre-commit@gh_actions
+    - uses: elastic/apm-pipeline-library/.github/actions/pre-commit@current
