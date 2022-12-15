@@ -19,6 +19,7 @@ package ecszap
 
 import (
 	"encoding/json"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -31,7 +32,8 @@ import (
 
 func TestJSONEncoder_EncoderConfig(t *testing.T) {
 	path := "/Home/foo/coding/ecszap/json_encoder_test.go"
-	caller := zapcore.NewEntryCaller(0, path, 30, true)
+	pc, _, _, _ := runtime.Caller(0)
+	caller := zapcore.NewEntryCaller(pc, path, 30, true)
 	for _, tc := range []struct {
 		name     string
 		cfg      EncoderConfig
@@ -45,7 +47,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecszap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go",
+							"function": "go.elastic.co/ecszap.TestJSONEncoder_EncoderConfig"
 						},
 						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",
@@ -79,7 +82,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecszap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go",
+							"function": "go.elastic.co/ecszap.TestJSONEncoder_EncoderConfig"
 						},
 						"log.origin.stack_trace": "frames",
 						"log.logger": "ecs",
@@ -103,7 +107,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecszap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go",
+							"function": "go.elastic.co/ecszap.TestJSONEncoder_EncoderConfig"
 						},
 						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",
@@ -116,7 +121,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "/Home/foo/coding/ecszap/json_encoder_test.go"
+							"file.name": "/Home/foo/coding/ecszap/json_encoder_test.go",
+							"function": "go.elastic.co/ecszap.TestJSONEncoder_EncoderConfig"
 						},
 						"foo": "bar",
 						"dur": 5000000}`},
@@ -152,7 +158,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 
 func TestECSCompatibleEncoderConfig(t *testing.T) {
 	path := "/Home/foo/coding/ecszap/json_encoder_test.go"
-	caller := zapcore.NewEntryCaller(0, path, 30, true)
+	pc, _, _, _ := runtime.Caller(0)
+	caller := zapcore.NewEntryCaller(pc, path, 30, true)
 	for _, tc := range []struct {
 		name     string
 		cfg      zapcore.EncoderConfig
@@ -176,7 +183,8 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecszap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go",
+							"function": "go.elastic.co/ecszap.TestECSCompatibleEncoderConfig"
 						},
 						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",

@@ -18,6 +18,7 @@
 package ecszap
 
 import (
+	"runtime"
 	"strings"
 	"time"
 
@@ -35,14 +36,14 @@ func EpochMicrosTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 // in order to encode callers in the ECS format.
 type CallerEncoder func(zapcore.EntryCaller, zapcore.PrimitiveArrayEncoder)
 
-// FullCallerEncoder serializes the file name and line from the caller
+// FullCallerEncoder serializes the file name, line and function from the caller
 // in an ECS compliant way; serializing the full path of the file name
 // using the underlying zapcore.EntryCaller.
 func FullCallerEncoder(c zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
 	encodeCaller(&caller{c, true}, enc)
 }
 
-// ShortCallerEncoder serializes the file name and line from the caller
+// ShortCallerEncoder serializes the file name, line and function from the caller
 // in an ECS compliant way; removing everything except the final directory from the
 // file name by calling the underlying zapcore.EntryCaller TrimmedPath().
 func ShortCallerEncoder(c zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
@@ -65,6 +66,7 @@ func (e *CallerEncoder) UnmarshalText(text []byte) error {
 func encodeCaller(c *caller, enc zapcore.PrimitiveArrayEncoder) {
 	// this function can only be called internally so we have full control over it
 	// and can ensure that enc is always of type zapcore.ArrayEncoder
+	c.Function = runtime.FuncForPC(c.PC).Name()
 	if e, ok := enc.(zapcore.ArrayEncoder); ok {
 		e.AppendObject(c)
 	}
@@ -83,6 +85,7 @@ func (c *caller) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 		file = c.TrimmedPath()
 		file = file[:strings.LastIndex(file, ":")]
 	}
+	enc.AddString("function", c.Function)
 	enc.AddString("file.name", file)
 	enc.AddInt("file.line", c.Line)
 	return nil
