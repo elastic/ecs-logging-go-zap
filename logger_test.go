@@ -127,6 +127,11 @@ func TestECSZapLogger(t *testing.T) {
 			logger.Info("testlog", zap.String("foo", "bar"))
 			out.validate(t, "foo", "log.origin")
 
+			// caller function
+			outLogOrigin, ok := out.m["log.origin"].(map[string]interface{})
+			require.True(t, ok, out.m["log.origin"])
+			require.Contains(t, outLogOrigin["function"], "ecszap.TestECSZapLogger")
+
 			// log a wrapped error
 			out.reset()
 			logger.With(zap.Error(errors.New("test error"))).Error("boom")

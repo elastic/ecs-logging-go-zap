@@ -18,7 +18,6 @@
 package ecszap
 
 import (
-	"runtime"
 	"strings"
 	"time"
 
@@ -66,7 +65,6 @@ func (e *CallerEncoder) UnmarshalText(text []byte) error {
 func encodeCaller(c *caller, enc zapcore.PrimitiveArrayEncoder) {
 	// this function can only be called internally so we have full control over it
 	// and can ensure that enc is always of type zapcore.ArrayEncoder
-	c.Function = runtime.FuncForPC(c.PC).Name()
 	if e, ok := enc.(zapcore.ArrayEncoder); ok {
 		e.AppendObject(c)
 	}
