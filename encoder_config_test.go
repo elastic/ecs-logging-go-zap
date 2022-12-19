@@ -32,6 +32,8 @@ import (
 func TestJSONEncoder_EncoderConfig(t *testing.T) {
 	path := "/Home/foo/coding/ecszap/json_encoder_test.go"
 	caller := zapcore.NewEntryCaller(0, path, 30, true)
+	caller.Function = "FuncName"
+
 	for _, tc := range []struct {
 		name     string
 		cfg      EncoderConfig
@@ -45,7 +47,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecszap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go",
+							"function": "FuncName"
 						},
 						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",
@@ -79,7 +82,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecszap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go",
+							"function": "FuncName"
 						},
 						"log.origin.stack_trace": "frames",
 						"log.logger": "ecs",
@@ -103,7 +107,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecszap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go",
+							"function": "FuncName"
 						},
 						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",
@@ -116,7 +121,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "/Home/foo/coding/ecszap/json_encoder_test.go"
+							"file.name": "/Home/foo/coding/ecszap/json_encoder_test.go",
+							"function": "FuncName"
 						},
 						"foo": "bar",
 						"dur": 5000000}`},
@@ -153,6 +159,8 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 func TestECSCompatibleEncoderConfig(t *testing.T) {
 	path := "/Home/foo/coding/ecszap/json_encoder_test.go"
 	caller := zapcore.NewEntryCaller(0, path, 30, true)
+	caller.Function = "FuncName"
+
 	for _, tc := range []struct {
 		name     string
 		cfg      zapcore.EncoderConfig
@@ -176,7 +184,8 @@ func TestECSCompatibleEncoderConfig(t *testing.T) {
 						"message": "log message",
 						"log.origin": {
 							"file.line": 30,
-							"file.name": "ecszap/json_encoder_test.go"
+							"file.name": "ecszap/json_encoder_test.go",
+							"function": "FuncName"
 						},
 						"log.origin.stack_trace": "frames",
 						"log.logger": "ECS",
