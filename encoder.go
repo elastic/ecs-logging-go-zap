@@ -35,27 +35,49 @@ func EpochMicrosTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 // in order to encode callers in the ECS format.
 type CallerEncoder func(zapcore.EntryCaller, zapcore.PrimitiveArrayEncoder)
 
-// FullCallerEncoder serializes the file name, line and function from the caller
+// FullCallerEncoder serializes the file name and line from the caller
 // in an ECS compliant way; serializing the full path of the file name
 // using the underlying zapcore.EntryCaller.
 func FullCallerEncoder(c zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
-	encodeCaller(&caller{c, true}, enc)
+	encodeCaller(&caller{c, true, false}, enc)
 }
 
-// ShortCallerEncoder serializes the file name, line and function from the caller
+// FullCallerFuncEncoder serializes the file name and line from the caller
+// in an ECS compliant way; serializing the full path of the file name
+// using the underlying zapcore.EntryCaller. The caller function is also
+// included.
+func FullCallerFuncEncoder(c zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+	encodeCaller(&caller{c, true, true}, enc)
+}
+
+// ShortCallerEncoder serializes the file name and line from the caller
 // in an ECS compliant way; removing everything except the final directory from the
 // file name by calling the underlying zapcore.EntryCaller TrimmedPath().
 func ShortCallerEncoder(c zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
-	encodeCaller(&caller{c, false}, enc)
+	encodeCaller(&caller{c, false, false}, enc)
+}
+
+// ShortCallerFuncEncoder serializes the file name and line from the caller
+// in an ECS compliant way; removing everything except the final directory from the
+// file name by calling the underlying zapcore.EntryCaller TrimmedPath(). The caller
+// function is also included.
+func ShortCallerFuncEncoder(c zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+	encodeCaller(&caller{c, false, true}, enc)
 }
 
 // UnmarshalText creates a CallerEncoder function,
 // `full` is unmarshalled to FullCallerEncoder,
+// `fullfunc` is unmarshalled to FullCallerFuncEncoder,
+// `shortfunc` is unmarshalled to ShortCallerFuncEncoder,
 // defaults to ShortCallerEncoder,
 func (e *CallerEncoder) UnmarshalText(text []byte) error {
 	switch string(text) {
 	case "full":
 		*e = FullCallerEncoder
+	case "fullfunc":
+		*e = FullCallerFuncEncoder
+	case "shortfunc":
+		*e = ShortCallerFuncEncoder
 	default:
 		*e = ShortCallerEncoder
 	}
@@ -73,6 +95,7 @@ func encodeCaller(c *caller, enc zapcore.PrimitiveArrayEncoder) {
 type caller struct {
 	zapcore.EntryCaller
 	fullPath bool
+	function bool
 }
 
 func (c *caller) MarshalLogObject(enc zapcore.ObjectEncoder) error {
@@ -83,8 +106,10 @@ func (c *caller) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 		file = c.TrimmedPath()
 		file = file[:strings.LastIndex(file, ":")]
 	}
-	enc.AddString("function", c.Function)
 	enc.AddString("file.name", file)
 	enc.AddInt("file.line", c.Line)
+	if c.function {
+		enc.AddString("file.function", c.Function)
+	}
 	return nil
 }
