@@ -6,12 +6,12 @@ scms:
     kind: github
     spec:
       user: '{{ requiredEnv "GITHUB_ACTOR" }}'
-      email: '{{ requiredEnv "GIT_EMAIL" }}'
       owner: elastic
       repository: ecs-logging-go-zap
       token: '{{ requiredEnv "GITHUB_TOKEN" }}'
       username: '{{ requiredEnv "GITHUB_ACTOR" }}'
       branch: main
+      commitusingapi: true
 
 actions:
   ecs-logging-go-zap:
