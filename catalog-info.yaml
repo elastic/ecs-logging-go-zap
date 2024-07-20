@@ -1,0 +1,30 @@
+# Declare your Buildkite pipelines below
+---
+# yaml-language-server: $schema=https://gist.githubusercontent.com/elasticmachine/988b80dae436cafea07d9a4a460a011d/raw/rre.schema.json
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: buildkite-pipeline-ecs-logging-go-zap
+  description: Buildkite Pipeline for ecs-logging-go-zap
+  links:
+    - title: Pipeline
+      url: https://buildkite.com/elastic/ecs-logging-go-zap
+
+spec:
+  type: buildkite-pipeline
+  owner: group:obs-ds-intake-services
+  system: buildkite
+  implementation:
+    apiVersion: buildkite.elastic.dev/v1
+    kind: Pipeline
+    metadata:
+      name: ecs-logging-go-zap
+      description: 
+    spec:
+      repository: elastic/ecs-logging-go-zap
+      pipeline_file: ".buildkite/pipeline.yml"
+      teams:
+        obs-ds-intake-services:
+          access_level: MANAGE_BUILD_AND_READ
+        everyone:
+          access_level: READ_ONLY
