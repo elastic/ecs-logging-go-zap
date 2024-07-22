@@ -1,10 +1,10 @@
----
 version: 2
 updates:
+  # GitHub actions
   - package-ecosystem: "github-actions"
-    directories:
-      - "/"
-      - "/.github/actions/*"
+    directory: "/"
+    reviewers:
+      - "elastic/observablt-ci"
     schedule:
       interval: "weekly"
       day: "sunday"
@@ -13,3 +13,8 @@ updates:
       github-actions:
         patterns:
           - "*"
+  # go dependencies
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
