@@ -19,7 +19,7 @@ package spec
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"path"
 	"path/filepath"
 	"runtime"
@@ -96,7 +96,7 @@ func init() {
 		panic("cannot recover information from runtime.Caller")
 	}
 	f := path.Join(filepath.ToSlash(filepath.Dir(filename)), "v1.json")
-	b, err := ioutil.ReadFile(f)
+	b, err := os.ReadFile(f)
 	if err != nil {
 		panic(errors.Wrap(err, "reading spec version 1 failed"))
 	}

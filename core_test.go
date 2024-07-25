@@ -20,6 +20,7 @@ package ecszap
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ import (
 )
 
 func TestCore(t *testing.T) {
-	entry := zapcore.Entry{Level: zapcore.DebugLevel}
+	entry := zapcore.Entry{Time: time.Now(), Level: zapcore.DebugLevel}
 	fields := []zapcore.Field{
 		zap.String("foo", "bar"),
 		zap.Error(errors.New("boom")),
