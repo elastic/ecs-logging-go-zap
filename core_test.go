@@ -61,7 +61,11 @@ func TestCore(t *testing.T) {
 	t.Run("Check", func(t *testing.T) {
 		out := testOutput{}
 		c := NewCore(NewDefaultEncoderConfig(), &out, zap.DebugLevel)
-		ce := c.Check(entry, &zapcore.CheckedEntry{})
+		ce := c.Check(entry, &zapcore.CheckedEntry{
+			Entry: zapcore.Entry{
+				Time: time.Now(),
+			},
+		})
 		ce.Write(fields...)
 		assertLogged(t, out)
 	})
