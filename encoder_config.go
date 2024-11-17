@@ -34,7 +34,7 @@ var (
 	messageKey    = "message"
 	stackTraceKey = "log.origin.stack_trace"
 	timeKey       = "@timestamp"
-	encodeTime    = zapcore.ISO8601TimeEncoder
+	encodeTime    = RFC3339UTCTimeEncoder
 )
 
 // EncoderConfig exports all non ECS related configurable settings.

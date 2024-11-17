@@ -2,6 +2,7 @@
 Changelog for ecszap
 
 ## unreleased
+* Use RFC3339 in UTC as the default time format for log messages [pull#84](https://github.com/elastic/ecs-logging-go-zap/pull/84)
 
 ## 1.0.2
 * Updated zap to v1.24.0 [pull#50](https://github.com/elastic/ecs-logging-go-zap/pull/50)
