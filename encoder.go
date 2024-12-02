@@ -49,6 +49,39 @@ func ShortCallerEncoder(c zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder
 	encodeCaller(&caller{c, false}, enc)
 }
 
+// RFC3339TimeEncoder serializes a time.Time to an RFC3339-formatted string
+// with millisecond precision.
+//
+// If enc supports AppendTimeLayout(t time.Time,layout string), it's used
+// instead of appending a pre-formatted string value.
+func RFC3339TimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	type appendTimeEncoder interface {
+		AppendTimeLayout(time.Time, string)
+	}
+	// Use a custom RFC3339 layout with obligatory millisecond
+	// precision rather than the second-resolution or optional
+	// nano-second resolution that is provided in the time
+	// package.
+	const rfc3339millis = "2006-01-02T15:04:05.000Z07:00"
+	if enc, ok := enc.(appendTimeEncoder); ok {
+		enc.AppendTimeLayout(t, rfc3339millis)
+		return
+	}
+
+	enc.AppendString(t.Format(rfc3339millis))
+}
+
+// RFC3339UTCTimeEncoder serializes a time.Time to an RFC3339-formatted string
+// with millisecond precision in UTC.
+//
+// If enc supports AppendTimeLayout(t time.Time,layout string), it's used
+// instead of appending a pre-formatted string value.
+//
+// RFC3339UTCTimeEncoder is the default time encoder used by EncoderConfig.
+func RFC3339UTCTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	RFC3339TimeEncoder(t.In(time.UTC), enc)
+}
+
 // UnmarshalText creates a CallerEncoder function,
 // `full` is unmarshalled to FullCallerEncoder,
 // defaults to ShortCallerEncoder,

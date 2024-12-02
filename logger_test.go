@@ -79,7 +79,13 @@ func (tw *testOutput) validate(t *testing.T, keys ...string) {
 			case "datetime":
 				var s string
 				s, ok = val.(string)
-				if _, err := time.Parse("2006-01-02T15:04:05.000Z0700", s); err == nil {
+				if !ok {
+					break
+				}
+				var tv time.Time
+				// Depends on the agreement between Go quoting and JSON quoting
+				// for time values.
+				if err := json.Unmarshal([]byte(strconv.Quote(s)), &tv); err == nil {
 					ok = true
 				}
 			case "integer":
@@ -125,7 +131,7 @@ func TestECSZapLogger(t *testing.T) {
 
 			// strongly typed fields
 			logger.Info("testlog", zap.String("foo", "bar"))
-			out.validate(t, "foo", "log.origin")
+			out.validate(t, "@timestamp", "foo", "log.origin")
 
 			// caller function
 			outLogOrigin, ok := out.m["log.origin"].(map[string]interface{})
@@ -135,7 +141,7 @@ func TestECSZapLogger(t *testing.T) {
 			// log a wrapped error
 			out.reset()
 			logger.With(zap.Error(errors.New("test error"))).Error("boom")
-			out.validate(t, "error", "message")
+			out.validate(t, "@timestamp", "error", "message")
 			assert.Equal(t, "boom", out.m["message"])
 			outErr, ok := out.m["error"].(map[string]interface{})
 			require.True(t, ok, out.m["error"])
@@ -146,7 +152,7 @@ func TestECSZapLogger(t *testing.T) {
 			logger = logger.With(zap.String("foo", "bar"))
 			logger = logger.Named("mylogger")
 			logger.Debug("debug message")
-			out.validate(t, "log.logger", "foo")
+			out.validate(t, "@timestamp", "log.logger", "foo")
 
 			// Use loosely typed logger
 			out.reset()
@@ -155,7 +161,7 @@ func TestECSZapLogger(t *testing.T) {
 				"foo", "bar",
 				"count", 17,
 			)
-			out.validate(t, "log.origin", "foo", "count")
+			out.validate(t, "@timestamp", "log.origin", "foo", "count")
 			out.reset()
 		})
 	}

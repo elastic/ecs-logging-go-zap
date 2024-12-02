@@ -37,11 +37,13 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
 		cfg      EncoderConfig
+		tz       *time.Location
 		input    string
 		expected string
 	}{
 		{name: "defaultConfig",
 			cfg: NewDefaultEncoderConfig(),
+			tz:  time.UTC,
 			expected: `{"log.level": "debug",
 						"@timestamp": "2020-09-13T10:48:03.000Z",
 						"message": "log message",
@@ -60,6 +62,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 				EnableCaller:     false,
 				EnableStackTrace: false,
 			},
+			tz: time.UTC,
 			expected: `{"log.level": "debug",
 						"@timestamp": "2020-09-13T10:48:03.000Z",
 						"message": "log message",
@@ -77,6 +80,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 				EncodeDuration: zapcore.MillisDurationEncoder,
 				EncodeCaller:   ShortCallerEncoder,
 			},
+			tz: time.UTC,
 			expected: `{"log.level": "DEBUG",
 						"@timestamp": "2020-09-13T10:48:03.000Z",
 						"message": "log message",
@@ -90,12 +94,21 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"foo": "bar",
 						"dur": 5}`},
 		{name: "defaultUnmarshal",
+			tz: time.UTC,
+			expected: `{"log.level": "debug",
+						"@timestamp": "2020-09-13T10:48:03.000Z",
+						"message": "log message",
+						"foo": "bar",
+						"dur": 5000000}`},
+		{name: "nonUTC",
+			tz: time.FixedZone("UTC-8", -8*60*60),
 			expected: `{"log.level": "debug",
 						"@timestamp": "2020-09-13T10:48:03.000Z",
 						"message": "log message",
 						"foo": "bar",
 						"dur": 5000000}`},
 		{name: "allEnabled",
+			tz: time.UTC,
 			input: `{"enableName": true, 
   					 "enableStackTrace": true,
 					 "enableCaller":true,
@@ -116,6 +129,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 						"dur": 5}`},
 		{name: "fullCaller",
 			input: `{"callerEncoder": "full","enableCaller":true}`,
+			tz:    time.UTC,
 			expected: `{"log.level": "debug",
 						"@timestamp": "2020-09-13T10:48:03.000Z",
 						"message": "log message",
@@ -131,7 +145,7 @@ func TestJSONEncoder_EncoderConfig(t *testing.T) {
 			// setup
 			entry := zapcore.Entry{
 				Level:      zapcore.DebugLevel,
-				Time:       time.Unix(1599994083, 0).UTC(),
+				Time:       time.Unix(1599994083, 0).In(tc.tz),
 				Message:    "log message",
 				Caller:     caller,
 				Stack:      "frames",
