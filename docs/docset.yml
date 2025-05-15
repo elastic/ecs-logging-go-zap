@@ -1,4 +1,6 @@
 project: 'ECS Logging Go (Zap)'
+products:
+  - id: ecs-logging
 cross_links:
   - beats
   - ecs
