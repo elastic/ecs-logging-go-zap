@@ -1,7 +1,11 @@
 ---
+applies_to:
+  product: ga
 mapped_pages:
   - https://www.elastic.co/guide/en/ecs-logging/go-zap/current/setup.html
 navigation_title: Get started
+products:
+  - id: ecs-logging
 ---
 
 # Get started with ECS Logging Go (Zap) [setup]
@@ -168,13 +172,23 @@ logger, err := config.Build(ecszap.WrapCoreOption(), zap.AddCaller())
 
 ## Step 3: Configure Filebeat [setup-step-3]
 
+```{applies_to}
+stack: ga
+serverless: unavailable
+```
+
 :::::::{tab-set}
 
 ::::::{tab-item} Log file
 1. Follow the [Filebeat quick start](beats://reference/filebeat/filebeat-installation-configuration.md)
 2. Add the following configuration to your `filebeat.yaml` file.
 
-For Filebeat 7.16+
+#### For Filebeat 7.16+ [filebeat-716]
+
+```{applies_to}
+stack: ga 7.16
+serverless: unavailable
+```
 
 ```yaml
 filebeat.inputs:
@@ -199,8 +213,12 @@ processors: <5>
 4. {{filebeat}} will recursively de-dot keys in the decoded JSON, and expand them into a hierarchical object structure.
 5. Processors enhance your data. See [processors](beats://reference/filebeat/filtering-enhancing-data.md) to learn more.
 
+#### For Filebeat < 7.16 [filebeat-legacy]
 
-For Filebeat < 7.16
+```{applies_to}
+stack: ga 7.0-7.15
+serverless: unavailable
+```
 
 ```yaml
 filebeat.inputs:
