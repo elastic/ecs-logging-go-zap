@@ -1,7 +1,11 @@
 ---
+applies_to:
+  product: ga
 mapped_pages:
   - https://www.elastic.co/guide/en/ecs-logging/go-zap/current/intro.html
   - https://www.elastic.co/guide/en/ecs-logging/go-zap/current/index.html
+products:
+  - id: ecs-logging
 ---
 
 # ECS Logging Go (Zap) [intro]
